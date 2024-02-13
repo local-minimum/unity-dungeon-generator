@@ -712,6 +712,6 @@ namespace ProcDungeon
                 return false;
             }
             return true;
-        }
+        }        
     }
 }

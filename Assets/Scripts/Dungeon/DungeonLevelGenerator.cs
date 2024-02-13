@@ -13,6 +13,9 @@ public class DungeonLevelGenerator : MonoBehaviour
     GameObject debugFloorPrefab;
 
     [SerializeField]
+    GameObject debugWallPrefab;
+
+    [SerializeField]
     Transform generatedLevel;
 
     void GenerateLevel(int seed)
@@ -33,8 +36,9 @@ public class DungeonLevelGenerator : MonoBehaviour
         var hallwayGenerator = new HallwayGenerator();
         hallwayGenerator.MakeHallways(roomGenerator.Rooms, ref settings);
 
-        DebugPlaceRooms(roomGenerator);
         DebugPlaceHallways(hallwayGenerator);
+
+        DebugPlaceRooms(roomGenerator, hallwayGenerator);
     }
 
     private void Start()
@@ -50,13 +54,21 @@ public class DungeonLevelGenerator : MonoBehaviour
             {
                 var floor = Instantiate(debugFloorPrefab, generatedLevel);
                 floor.transform.position = new Vector3(tileCoordinates.x * settings.tileSize, 0, tileCoordinates.y * settings.tileSize);
-                floor.name = $"Hallway {hallway.Id} {tileCoordinates}";
+                floor.name = $"Hallway {hallway.Id} Floor {tileCoordinates}";
 
+            }
+
+            foreach (var wallPosition in hallway.Walls(settings.tileSize, settings.tileSize * 0.5f))
+            {
+                var wall = Instantiate(debugWallPrefab, generatedLevel);
+                wall.transform.position = wallPosition.Position;
+                wall.transform.rotation = wallPosition.Rotation;
+                wall.name = $"Hallway {hallway.Id} Wall {wallPosition.Coordinates} Facing {wallPosition.Direction}";
             }
         }
     }
 
-    private void DebugPlaceRooms(RoomGenerator roomGenerator)
+    private void DebugPlaceRooms(RoomGenerator roomGenerator, HallwayGenerator hallwayGenerator)
     {
         foreach (var room in roomGenerator.Rooms)
         {
@@ -65,6 +77,31 @@ public class DungeonLevelGenerator : MonoBehaviour
                 var floor = Instantiate(debugFloorPrefab, generatedLevel);
                 floor.transform.position = new Vector3(tileCoordinates.x * settings.tileSize, 0, tileCoordinates.y * settings.tileSize);
                 floor.name = $"Room {room.RoomId} Perimeter {tileCoordinates}";
+
+                foreach (var direction in MathExtensions.CardinalDirections)
+                {
+                    var perimeterNeighbour = tileCoordinates + direction;
+                    if (room.Contains(perimeterNeighbour)) continue;
+
+                    bool isInHall = false;
+                    foreach (var hall in hallwayGenerator.Hallways)
+                    {
+                        if (hall.IsHallExit(tileCoordinates) && hall.Contains(perimeterNeighbour))
+                        {
+                            isInHall = true;
+                            break;
+                        }
+                    }
+
+                    if (isInHall) continue;
+
+                    var wallPosition = DungeonHallway.WallPosition(tileCoordinates, direction, settings.tileSize, settings.tileSize * 0.5f);
+                    var wall = Instantiate(debugWallPrefab, generatedLevel);
+                    wall.transform.position = wallPosition.Position;
+                    wall.transform.rotation = wallPosition.Rotation;
+                    wall.name = $"Room {room.RoomId} Wall {wallPosition.Coordinates} Facing {wallPosition.Direction}";
+
+                }
             }
 
             foreach (var tileCoordinates in room.Interior)
