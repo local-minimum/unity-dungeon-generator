@@ -118,8 +118,9 @@ namespace ProcDungeon
                     if (dNext.IsOrthogonalCardinal(dPrev))
                     {
                         Grid[perimeter.y, perimeter.x] = ROOM_CORNER;
+
                         // Concave rotation
-                        if (dNext.IsCCWRotationOf(dPrev))
+                        if (dNext.IsCWRotationOf(dPrev))
                         {
                             Grid[prev.y, prev.x] = ROOM_FORBIDDEN_EXIT;
                             Grid[next.y, next.x] = ROOM_FORBIDDEN_EXIT;
@@ -274,13 +275,12 @@ namespace ProcDungeon
                     {
                         var destinationExitDirection = destination.ExitDirection(exitCandidate);
 
-                        var exitDirectionDistance = sourceExitDirection.x * (sourceExit.x - exitCandidate.x)
-                                + sourceExitDirection.y * (sourceExit.y - exitCandidate.y);
-
-                        
                         if (destinationExitDirection.IsInverseDirection(sourceExitDirection))
                         {
                             var diff = exitCandidate - sourceExit;
+                            var exitDirectionDistance = sourceExitDirection.x * (sourceExit.x - exitCandidate.x)
+                                    + sourceExitDirection.y * (sourceExit.y - exitCandidate.y);
+
                             var absExitDirectionDistance = Mathf.Abs(exitDirectionDistance);
 
                             if (diff.x * diff.y == 0)
@@ -294,8 +294,9 @@ namespace ProcDungeon
                             }                      
                         }
 
-                        // Elbow candidate must clear room by going out one step at least                        
-                        return exitDirectionDistance > 1;
+                        var elbow = exitCandidate.OrthoIntersection(sourceExit, sourceExitDirection);
+                        
+                        return InBounds(elbow) && IsEmpty(elbow) && sourceExit.ManhattanDistance(elbow) > 1 && exitCandidate.ManhattanDistance(elbow) > 1;
                     })
                     .ToList();
            
@@ -311,6 +312,8 @@ namespace ProcDungeon
             var hallSource = sourceExit + sourceExitDirection;
             var hallDestination = destinationExit + destinationExitDirection;
             var hallway = new DungeonHallway(source, hallSource, sourceExit, destination, hallDestination, destinationExit, hallwayId);
+
+            Debug.Log($"Attempting to connect room {source.RoomId} {sourceExit} to {destination.RoomId} {destinationExit}");
 
             if (sourceExitDirection.IsInverseDirection(destinationExitDirection))
             {
@@ -336,29 +339,40 @@ namespace ProcDungeon
             // Debug.Log($"Finding potential exit from {room.RoomId} to reach {target}");
 
             var candidates = room.Perimeter
-                .Where(candidate => {
-                    if (!IsPerimeter(candidate)) return false;
-                    
-                    var diff = target - candidate;
+                .Select(candidate =>
+                {
+                    Vector2Int candidateNeighbour;
+                    var hasEmptyNeighbour = GetEmptyNeighbour(candidate, out candidateNeighbour);
 
+                    return new { candidate, candidateNeighbour, hasEmptyNeighbour };
+                })
+                .Where(c => {
+                    if (!c.hasEmptyNeighbour || !IsPerimeter(c.candidate)) return false;
+                    
+                    if (c.candidateNeighbour.ManhattanDistance(target) >= c.candidate.ManhattanDistance(target)) return false;
+
+                    var exitDirection = c.candidateNeighbour - c.candidate;
+                    var diff = target - c.candidateNeighbour;
+                    var prod = exitDirection * diff;
+                    if (prod.x == 0 && prod.y == 0 || prod.x < 0 || prod.y < 0) return false;
+                    
+                    /*
                     // if (diff.x != 0 && diff.y != 0 && diff.SmallestDimension() < 2) return false;
 
                     // TODO: Missing some rules here I think...
 
-                    foreach (var component in (diff).AsUnitComponents())
+                    foreach (var component in diff.AsUnitComponents())
                     {
                         // Debug.Log($"Direction {component} for {candidate}->{target}: Empty out {IsEmpty(candidate + component)} and room in {IsAnyRoom(candidate + component * -1)}");
-                        if (IsEmpty(candidate + component) && IsAnyRoom(candidate + component * -1)) return true;                        
+                        if (IsEmpty(c.candidate + component) && IsAnyRoom(c.candidate + component * -1)) return true;                        
                     }
-                    
-                    return false;
+                    */
+                    return true;
                 })
-                .OrderBy(candidate => {
-                    Vector2Int candidateNeighbour;
-                    if (!GetEmptyNeighbour(candidate, out candidateNeighbour)) return LevelSize;
-
-                    return candidateNeighbour.ManhattanDistance(target);
+                .OrderBy(c => {
+                    return c.candidateNeighbour.ManhattanDistance(target);
                  })
+                .Select(c => c.candidate)
                 .ToList();
 
             if (candidates.Count == 0)
@@ -367,7 +381,7 @@ namespace ProcDungeon
             }
 
             var closestDistance = candidates.First().ManhattanDistance(target);
-            Debug.Log($"Closest distance is {closestDistance} with {candidates.Count} candiates {string.Join(", ", candidates.Select(c => c.ManhattanDistance(target)))}");
+            Debug.Log($"Closest distance is {closestDistance} with {candidates.Count} candiates {string.Join("; ", candidates.Select(c => $"{c}: {c.ManhattanDistance(target)}"))}");
 
             return candidates
                 .TakeWhile(c => c.ManhattanDistance(target) < Mathf.Min(closestDistance + tolerance, LevelSize))
@@ -393,10 +407,10 @@ namespace ProcDungeon
             for (int i = 0; i < 4; i++)
             {
                 var direction = MathExtensions.CardinalDirections[i];
-
-                if (IsEmpty(point + direction))
+                var neighbourCandidate = point + direction;
+                if (InBounds(neighbourCandidate) && IsEmpty(neighbourCandidate))
                 {
-                    neighbour = point + direction;
+                    neighbour = neighbourCandidate;
                     return true;
                 }
             }
@@ -533,7 +547,7 @@ namespace ProcDungeon
 
                     while (hallPoint != elbowTarget)
                     {
-                        hallPoint += elbowTarget;
+                        hallPoint += elbowDirection;
 
                         if (!RecordHallwayPosition(hallway, hallPoint, elbowDirection, hallPoint == elbowTarget))
                         {

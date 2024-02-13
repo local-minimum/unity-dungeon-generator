@@ -13,9 +13,16 @@ public class DungeonLevelGenerator : MonoBehaviour
     [SerializeField]
     GameObject debugFloorPrefab;
 
+    [SerializeField]
+    Transform generatedLevel;
 
-    void GenerateLevel()
+    void GenerateLevel(int seed)
     {
+        foreach (Transform t in generatedLevel.transform)
+        {
+            Destroy(t.gameObject);
+        }
+
         Random.InitState(seed);
 
         var segmenter = new GridSegmenter();
@@ -33,7 +40,7 @@ public class DungeonLevelGenerator : MonoBehaviour
 
     private void Start()
     {
-        GenerateLevel();
+        GenerateLevel(seed);
     }
 
     private void DebugPlaceHallways(HallwayGenerator hallwayGenerator)
@@ -42,7 +49,7 @@ public class DungeonLevelGenerator : MonoBehaviour
         {
             foreach (var tileCoordinates in hallway.Hallway)
             {
-                var floor = Instantiate(debugFloorPrefab, transform);
+                var floor = Instantiate(debugFloorPrefab, generatedLevel);
                 floor.transform.position = new Vector3(tileCoordinates.x * settings.tileSize, 0, tileCoordinates.y * settings.tileSize);
                 floor.name = $"Hallway {hallway.Id} {tileCoordinates}";
 
@@ -56,17 +63,25 @@ public class DungeonLevelGenerator : MonoBehaviour
         {
             foreach (var tileCoordinates in room.Perimeter)
             {
-                var floor = Instantiate(debugFloorPrefab, transform);
+                var floor = Instantiate(debugFloorPrefab, generatedLevel);
                 floor.transform.position = new Vector3(tileCoordinates.x * settings.tileSize, 0, tileCoordinates.y * settings.tileSize);
                 floor.name = $"Room {room.RoomId} Perimeter {tileCoordinates}";
             }
 
             foreach (var tileCoordinates in room.Interior)
             {
-                var floor = Instantiate(debugFloorPrefab, transform);
+                var floor = Instantiate(debugFloorPrefab, generatedLevel);
                 floor.transform.position = new Vector3(tileCoordinates.x * settings.tileSize, 0, tileCoordinates.y * settings.tileSize);
                 floor.name = $"Room {room.RoomId} Interior {tileCoordinates}";
             }
+        }
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            GenerateLevel(Mathf.RoundToInt(Random.value * 10000));
         }
     }
 }

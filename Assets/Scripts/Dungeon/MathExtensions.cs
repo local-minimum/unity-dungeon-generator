@@ -53,7 +53,10 @@ namespace ProcDungeon
             direction1.x == -direction2.x && direction1.y == -direction2.y;
 
         public static bool IsCCWRotationOf(this Vector2Int cardinal1, Vector2Int cardinal2) =>
-            -cardinal2.y == cardinal1.x && cardinal2.x == cardinal2.y;
+           cardinal1.RotateCCW() == cardinal2;
+
+        public static bool IsCWRotationOf(this Vector2Int cardinal1, Vector2Int cardinal2) =>
+           cardinal1.RotateCW() == cardinal2;
 
         public static Vector2Int RotateCW(this Vector2Int direction) =>
             new Vector2Int(-direction.y, direction.x);
