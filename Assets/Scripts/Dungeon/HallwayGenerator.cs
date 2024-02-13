@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UIElements;
 using Random = UnityEngine.Random;
 
 
@@ -38,6 +36,8 @@ namespace ProcDungeon
             RecordRoomsOnGrid();
 
             ConnectRooms();
+
+            HealGrid();
 
             LogGrid();            
         }
@@ -232,6 +232,119 @@ namespace ProcDungeon
                 }
             }
         }
+        private void GroupRooms(List<DungeonRoom> grouped, Queue<DungeonRoom> newGrouped)
+        {
+            while (newGrouped.Count > 0)
+            {
+                var room = newGrouped.Dequeue();
+                
+                if (room == null || grouped.Contains(room)) continue;
+
+                grouped.Add(room);
+
+                foreach (var hallway in Hallways)
+                {
+                    if (hallway.SourceRoom == room)
+                    {
+                        if (!grouped.Contains(hallway.DestinationRoom) && !newGrouped.Contains(hallway.DestinationRoom))
+                        {
+                            newGrouped.Enqueue(hallway.DestinationRoom);
+                        }
+                    } else if (hallway.DestinationRoom == room)
+                    {
+                        if (!grouped.Contains(hallway.SourceRoom) && !newGrouped.Contains(hallway.SourceRoom))
+                        {
+                            newGrouped.Enqueue(hallway.SourceRoom);
+                        }
+
+                    }
+                }
+            }
+        }
+
+        private void HealGrid()
+        {
+            int nRooms = Rooms.Count;
+            if (nRooms == 0)
+            {
+                Debug.LogError("There were no rooms in level so can't heal them");
+                return;
+            }
+
+            List<DungeonRoom> grouped = new List<DungeonRoom>();
+            Queue<DungeonRoom> newGrouped = new Queue<DungeonRoom>();
+            List<DungeonRoom> ungrouped = new List<DungeonRoom>();
+            List<int> impossibleConnection = new List<int>();
+
+            System.Func<int, int, int> ConnectionId = (int a, int b) => (nRooms + 1) * a + b;
+
+            newGrouped.Enqueue(Rooms[0]);
+            GroupRooms(grouped, newGrouped);
+
+
+            ungrouped.AddRange(Rooms.Where(room => !grouped.Contains(room)));
+
+            Debug.Log($"Grouped {grouped.Count}, newGrouped {newGrouped.Count}, ungrouped {ungrouped.Count}");
+
+            while (ungrouped.Count > 0)
+            {
+                int distance = LevelSize;
+                DungeonRoom candidate = null;
+                DungeonRoom connector = null;
+
+                for (int i = 0, nUngrouped=ungrouped.Count, nGrouped=grouped.Count; i < nUngrouped; i++)
+                {
+                    DungeonRoom room = ungrouped[i];
+                    for (int j = 0; j<nGrouped; j++)
+                    {
+                        DungeonRoom groupedRoom = grouped[j];
+                        var dist = groupedRoom.CenterDistance(room);
+                        if (dist < distance)
+                        {
+                            var conId = ConnectionId(room.RoomId, groupedRoom.RoomId);
+                            if (!impossibleConnection.Contains(conId))
+                            {
+                                candidate = room;
+                                connector = groupedRoom;
+                                distance = dist;
+                            }
+                        }
+                    }
+                }
+
+                if (candidate == null || connector == null)
+                {
+                    Debug.LogError($"Though there are {ungrouped.Count} rooms left ungrouped, non of them can be connected");
+                    return;
+                }
+
+                var hallway = Connect(candidate, connector);
+                if (hallway != null && hallway.Valid)
+                {
+                    Debug.Log($"Heal connected rooms {hallway.SourceRoom.RoomId} with {hallway.DestinationRoom.RoomId}");
+                    _Hallways.Add(hallway);
+                    AddRoomExitAndBlockNeighbours(hallway.SourceExit, hallway.Source - hallway.SourceExit);
+                    AddRoomExitAndBlockNeighbours(hallway.DestinationExit, hallway.Destination - hallway.DestinationExit);
+
+                    ungrouped.Remove(candidate);
+                    newGrouped.Enqueue(candidate);
+                    GroupRooms(grouped, newGrouped);
+
+                    ungrouped.Clear();
+                    ungrouped.AddRange(Rooms.Where(r => !newGrouped.Contains(r) && !grouped.Contains(r)));
+                }
+                else
+                {
+                    Debug.LogError($"Failed to heal grid by connecting {candidate} to {connector}");
+                    if (hallway!= null)
+                    {
+                        ClearHallway(hallway);
+                    }
+                    impossibleConnection.Add(ConnectionId(candidate.RoomId, connector.RoomId));
+
+                }
+            }
+        }
 
         private void ClearHallway(DungeonHallway hallway)
         {
@@ -356,17 +469,6 @@ namespace ProcDungeon
                     var prod = exitDirection * diff;
                     if (prod.x == 0 && prod.y == 0 || prod.x < 0 || prod.y < 0) return false;
                     
-                    /*
-                    // if (diff.x != 0 && diff.y != 0 && diff.SmallestDimension() < 2) return false;
-
-                    // TODO: Missing some rules here I think...
-
-                    foreach (var component in diff.AsUnitComponents())
-                    {
-                        // Debug.Log($"Direction {component} for {candidate}->{target}: Empty out {IsEmpty(candidate + component)} and room in {IsAnyRoom(candidate + component * -1)}");
-                        if (IsEmpty(c.candidate + component) && IsAnyRoom(c.candidate + component * -1)) return true;                        
-                    }
-                    */
                     return true;
                 })
                 .OrderBy(c => {
