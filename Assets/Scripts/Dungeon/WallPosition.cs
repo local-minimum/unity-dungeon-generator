@@ -15,5 +15,20 @@ namespace ProcDungeon {
             Position = position;
             Rotation = quaternion;
         }
+
+        public static WallPosition From(Vector2Int pt, Vector2Int direction, float scale, float elevation)
+        {
+            var offset = new Vector3(pt.x + 0.5f * direction.x, 0, pt.y + 0.5f * direction.y);
+
+            offset *= scale;
+
+
+            return new WallPosition(
+                pt, 
+                direction, 
+                offset + Vector3.up * elevation, 
+                Quaternion.LookRotation(new Vector3(direction.x, 0, direction.y))
+                );
+        }
     }
 }

@@ -37,17 +37,6 @@ namespace ProcDungeon
             SourceRoom == room && DestinationRoom == other
             || SourceRoom == other && DestinationRoom == room;
 
-
-        public static WallPosition WallPosition(Vector2Int pt, Vector2Int direction, float scale, float elevation)
-        {
-            var offset = new Vector3(pt.x + 0.5f * direction.x, 0, pt.y + 0.5f * direction.y);
-
-            offset *= scale;
-
-
-            return new WallPosition(pt, direction, offset + Vector3.up * elevation, Quaternion.LookRotation(new Vector3(direction.x, 0, direction.y)));
-        }
-
         public IEnumerable<WallPosition> Walls(float scale, float elevation)
         {
             var currentDirection = Source - SourceExit;
@@ -80,7 +69,7 @@ namespace ProcDungeon
 
                     if (noWall) continue;
 
-                    yield return WallPosition(pt, direction, scale, elevation);
+                    yield return WallPosition.From(pt, direction, scale, elevation);
                 }
 
                 if (i + 1 < n)

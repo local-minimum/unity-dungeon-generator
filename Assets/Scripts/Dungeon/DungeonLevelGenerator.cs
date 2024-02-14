@@ -95,7 +95,7 @@ public class DungeonLevelGenerator : MonoBehaviour
 
                     if (isInHall) continue;
 
-                    var wallPosition = DungeonHallway.WallPosition(tileCoordinates, direction, settings.tileSize, settings.tileSize * 0.5f);
+                    var wallPosition = WallPosition.From(tileCoordinates, direction, settings.tileSize, settings.tileSize * 0.5f);
                     var wall = Instantiate(debugWallPrefab, generatedLevel);
                     wall.transform.position = wallPosition.Position;
                     wall.transform.rotation = wallPosition.Rotation;
