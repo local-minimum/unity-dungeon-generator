@@ -19,6 +19,12 @@ namespace ProcDungeon
 
         public List<RectInt> Segments => _Segments;
 
+        public GridSegmenter(ref DungeonLevelSetting settings)
+        {
+            _Settings = settings;
+            splitabilityThreshold = settings.minSegmentLength * 2;
+        }
+
         void ClearPrevious()
         {
             _Splittables.Clear();
@@ -26,16 +32,14 @@ namespace ProcDungeon
             _Topology.Clear();
         }
 
-        public void Segment(ref DungeonLevelSetting settings)
-        {
-            _Settings = settings;
-            splitabilityThreshold = settings.minSegmentLength * 2;
+        public void Segment()
+        {                        
             ClearPrevious();
 
-            var rect = new RectInt(0, 0, settings.gridSizeColumns, settings.gridSizeRows);
+            var rect = new RectInt(0, 0, _Settings.gridSizeColumns, _Settings.gridSizeRows);
             _Splittables.Add(rect);
 
-            while (_Splittables.Count > 0 && _Splittables.Count + _Segments.Count < settings.maxNumberOfSegments)
+            while (_Splittables.Count > 0 && _Splittables.Count + _Segments.Count < _Settings.maxNumberOfSegments)
             {
                 int idx = Random.Range(0, _Splittables.Count);
                 rect = _Splittables[idx];

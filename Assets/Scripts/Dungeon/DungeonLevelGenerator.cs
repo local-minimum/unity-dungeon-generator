@@ -27,14 +27,17 @@ public class DungeonLevelGenerator : MonoBehaviour
 
         Random.InitState(seed);
 
-        var segmenter = new GridSegmenter();
-        segmenter.Segment(ref settings);
+        var grid = new DungeonGrid(settings);
 
-        var roomGenerator = new RoomGenerator();
-        roomGenerator.PlaceRooms(segmenter, ref settings);
+        var segmenter = new GridSegmenter(ref settings);
+        segmenter.Segment();
+        
+        var roomGenerator = new RoomGenerator(grid, ref settings);
 
-        var hallwayGenerator = new HallwayGenerator();
-        hallwayGenerator.MakeHallways(roomGenerator.Rooms, ref settings);
+        roomGenerator.PlaceRooms(segmenter);
+
+        var hallwayGenerator = new HallwayGenerator(grid, roomGenerator.Rooms, ref settings);
+        hallwayGenerator.MakeHallways();
 
         DebugPlaceHallways(hallwayGenerator);
 

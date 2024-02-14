@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -9,31 +9,22 @@ namespace ProcDungeon
 {
     public class HallwayGenerator
     {
-        const int EMPTY_SPACE = 0;
-        const int ROOM_PERIMETER = -1;
-        const int ROOM_EXIT = -2;
-        const int ROOM_FORBIDDEN_EXIT = -4;
-        const int ROOM_CORNER = -5;
-        const int ROOM_INTERIOR = -10;
-
-        const int GRID_VALUE_TO_CHAR_BASE = 73;
-
-        private int[,] Grid;
-        private int LevelSize;
+        private DungeonGrid Grid;
         private DungeonLevelSetting settings;
         private List<DungeonRoom> Rooms;
         private List<DungeonHallway> _Hallways = new List<DungeonHallway>();
         public List<DungeonHallway> Hallways => _Hallways;
 
-        public void MakeHallways(List<DungeonRoom> rooms, ref DungeonLevelSetting settings)
+        public HallwayGenerator(DungeonGrid grid, List<DungeonRoom> rooms, ref DungeonLevelSetting settings)
         {
             this.settings = settings;
             Rooms = rooms;
+            Grid = grid;
+        }
+
+        public void MakeHallways()
+        {
             _Hallways.Clear();
-
-            InitGrid();
-
-            RecordRoomsOnGrid();
 
             ConnectRooms();
 
@@ -44,128 +35,12 @@ namespace ProcDungeon
 
         void LogGrid()
         {
-            var output = "HalwayGenerator Grid:\n";
-
-            for (int row = 0, nRows = Grid.GetLength(0); row < nRows; row++)
-            {
-                for (int col = 0, nCols = Grid.GetLength(1); col < nCols; col++)
-                {
-                    var value = Grid[row, col];
-                    var pt = new Vector2Int(col, row);
-                    if (value == ROOM_INTERIOR)
-                    {
-                        bool foundRoom = false;
-                        foreach (var room in Rooms)
-                        {
-                            if (room.Contains(pt))
-                            {
-                                var roomName = $"{room.RoomId}#";
-                                output += roomName[Math.Min(roomName.Length - 1, (row + col) % roomName.Length)];
-                                foundRoom = true;
-                                break;
-                            }                            
-                        }
-
-                        if (!foundRoom)
-                        {
-                            output += Convert.ToChar(value + GRID_VALUE_TO_CHAR_BASE);
-                        }
-                    } else if (value == EMPTY_SPACE)
-                    {
-                        output += ".";
-                    } else
-                    {
-                        output += Convert.ToChar(value + GRID_VALUE_TO_CHAR_BASE);
-                    }
-                }
-                output += "\n";
-            }
-
-            Debug.Log(output);
+            Debug.Log($"HalwayGenerator Grid:\n{Grid.ToString(Rooms)}");
         }
 
-        void InitGrid()
-        {
-            Grid = new int[settings.gridSizeRows, settings.gridSizeColumns];
-            LevelSize = settings.gridSizeRows * settings.gridSizeColumns;
-        }
-
-        void RecordRoomsOnGrid()
-        {
-            for (int idxRoom = 0, nRooms = Rooms.Count; idxRoom < nRooms; idxRoom++)
-            {
-                var room = Rooms[idxRoom];
-
-                foreach (var interior in room.Interior)
-                {
-                    Grid[interior.y, interior.x] = ROOM_INTERIOR;
-                }
-
-                if (room.Perimeter.Count == 0) continue;
-
-                var prev = room.Perimeter.Last();
-                var perimeter = room.Perimeter[0];
-                int lastRow = settings.gridSizeRows - 1;
-                int lastCol = settings.gridSizeColumns - 1;
-
-                for (int idx = 1, n = room.Perimeter.Count; idx < n; idx++)
-                {
-                    var next = room.Perimeter[idx];
-                    var dPrev = perimeter - prev;
-                    var dNext = next - perimeter;
-
-                    // We're at a corner
-                    if (dNext.IsOrthogonalCardinal(dPrev))
-                    {
-                        Grid[perimeter.y, perimeter.x] = ROOM_CORNER;
-
-                        // Concave rotation
-                        if (dNext.IsCWRotationOf(dPrev))
-                        {
-                            Grid[prev.y, prev.x] = ROOM_FORBIDDEN_EXIT;
-                            Grid[next.y, next.x] = ROOM_FORBIDDEN_EXIT;
-                            // Not yet bee set by concave rotation rule
-                        }
-                    }
-                    else if (Grid[perimeter.y, perimeter.x] == EMPTY_SPACE)
-                    {
-                        // On the egde of the grid
-                        if (perimeter.y == 0 || perimeter.x == 0 || perimeter.y == lastRow || perimeter.x == lastCol)
-                        {
-                            Grid[perimeter.y, perimeter.x] = ROOM_FORBIDDEN_EXIT;
-                        }
-                        else
-                        {
-                            Grid[perimeter.y, perimeter.x] = ROOM_PERIMETER;
-                        }
-                    }
-
-                    prev = perimeter;
-                    perimeter = next;
-                    
-                }
-
-                if (Grid[perimeter.y, perimeter.x] == EMPTY_SPACE) {
-                    if (perimeter.y == 0 || perimeter.x == 0 || perimeter.y == lastRow || perimeter.x == lastCol)
-                    {
-                        Grid[perimeter.y, perimeter.x] = ROOM_FORBIDDEN_EXIT;
-                    }
-                    else if (room.Perimeter[0] - perimeter == perimeter - prev)
-                    {
-                        Grid[perimeter.y, perimeter.x] = ROOM_PERIMETER;
-                    }
-                    else
-                    {
-                        Grid[perimeter.y, perimeter.x] = ROOM_CORNER;
-                    }
-
-                }
-            }
-        }
-   
         bool FindClosestRoom(DungeonRoom room, bool excludeConnected, out DungeonRoom closest)
         {
-            int closestDistance = LevelSize;
+            int closestDistance = Grid.LargestManhattanDistance + 1;
             closest = null;
 
             foreach (var other in Rooms)
@@ -288,7 +163,7 @@ namespace ProcDungeon
 
             while (ungrouped.Count > 0)
             {
-                int distance = LevelSize;
+                int distance = Grid.LargestManhattanDistance + 1;
                 DungeonRoom candidate = null;
                 DungeonRoom connector = null;
 
@@ -350,19 +225,19 @@ namespace ProcDungeon
         {
             foreach (var hallPt in hallway.Hallway)
             {
-                Grid[hallPt.y, hallPt.x] = EMPTY_SPACE;
+                Grid[hallPt] = DungeonGrid.EMPTY_SPACE;
             }
         }
 
         private void AddRoomExitAndBlockNeighbours(Vector2Int point, Vector2Int exitDirection)
         {
-            Grid[point.y, point.x] = ROOM_EXIT;
+            Grid[point] = DungeonGrid.ROOM_EXIT;
             foreach (var direction in new[] { exitDirection.RotateCCW(), exitDirection.RotateCW() })
             {
                 var neigbour = point + direction;
-                if (InBounds(neigbour) && Is(neigbour, ROOM_PERIMETER))
+                if (Grid.InBounds(neigbour) && Grid[neigbour] == DungeonGrid.ROOM_PERIMETER)
                 {
-                    Grid[neigbour.y, neigbour.x] = ROOM_FORBIDDEN_EXIT;
+                    Grid[neigbour] = DungeonGrid.ROOM_FORBIDDEN_EXIT;
                 }
             }
         }
@@ -409,7 +284,7 @@ namespace ProcDungeon
 
                         var elbow = exitCandidate.OrthoIntersection(sourceExit, sourceExitDirection);
                         
-                        return InBounds(elbow) && IsEmpty(elbow) && sourceExit.ManhattanDistance(elbow) > 1 && exitCandidate.ManhattanDistance(elbow) > 1;
+                        return Grid.InBounds(elbow) && Grid.IsEmpty(elbow) && sourceExit.ManhattanDistance(elbow) > 1 && exitCandidate.ManhattanDistance(elbow) > 1;
                     })
                     .ToList();
            
@@ -455,12 +330,12 @@ namespace ProcDungeon
                 .Select(candidate =>
                 {
                     Vector2Int candidateNeighbour;
-                    var hasEmptyNeighbour = GetEmptyNeighbour(candidate, out candidateNeighbour);
+                    var hasEmptyNeighbour = Grid.GetEmptyNeighbour(candidate, out candidateNeighbour);
 
                     return new { candidate, candidateNeighbour, hasEmptyNeighbour };
                 })
                 .Where(c => {
-                    if (!c.hasEmptyNeighbour || !IsPerimeter(c.candidate)) return false;
+                    if (!c.hasEmptyNeighbour || !Grid.IsPerimeter(c.candidate)) return false;
                     
                     if (c.candidateNeighbour.ManhattanDistance(target) >= c.candidate.ManhattanDistance(target)) return false;
 
@@ -486,42 +361,9 @@ namespace ProcDungeon
             Debug.Log($"Closest distance is {closestDistance} with {candidates.Count} candiates {string.Join("; ", candidates.Select(c => $"{c}: {c.ManhattanDistance(target)}"))}");
 
             return candidates
-                .TakeWhile(c => c.ManhattanDistance(target) < Mathf.Min(closestDistance + tolerance, LevelSize))
+                .TakeWhile(c => c.ManhattanDistance(target) < Mathf.Min(closestDistance + tolerance, Grid.LargestManhattanDistance))
                 .ToList();
         }
-
-        private bool IsPerimeter(Vector2Int point) => Is(point, ROOM_PERIMETER);
-        private bool IsEmpty(Vector2Int point) => Is(point, EMPTY_SPACE);
-
-        private bool IsAnyRoom(Vector2Int point)
-        {
-            var value = Grid[point.y, point.x];
-            return value == ROOM_CORNER
-                || value == ROOM_EXIT
-                || value == ROOM_FORBIDDEN_EXIT
-                || value == ROOM_INTERIOR
-                || value == ROOM_PERIMETER;
-        } 
-        private bool Is(Vector2Int point, int value) => Grid[point.y, point.x] == value;
-
-        private bool GetEmptyNeighbour(Vector2Int point, out Vector2Int neighbour)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                var direction = MathExtensions.CardinalDirections[i];
-                var neighbourCandidate = point + direction;
-                if (InBounds(neighbourCandidate) && IsEmpty(neighbourCandidate))
-                {
-                    neighbour = neighbourCandidate;
-                    return true;
-                }
-            }
-
-            neighbour = point;
-            return false;
-        }
-        bool InBounds(Vector2Int point) =>
-            point.x >= 0 && point.y >= 0 && point.x < settings.gridSizeColumns && point.y < settings.gridSizeRows;
 
         private bool RecordHallwayPosition(DungeonHallway hallway, Vector2Int point, Vector2Int direction)
         {
@@ -530,7 +372,7 @@ namespace ProcDungeon
 
         private bool RecordHallwayPosition(DungeonHallway hallway, Vector2Int point, Vector2Int direction, bool requireForwardFree)
         {
-            if (!InBounds(point))
+            if (!Grid.InBounds(point))
             {
                 Debug.LogError($"Tried to dig hallway at {point} which is out of bounds");
                 return false;
@@ -540,33 +382,33 @@ namespace ProcDungeon
             var rightPt = point + direction.RotateCW();
             var fwdPt = point + direction;
 
-            if (!IsEmpty(point))
+            if (!Grid.IsEmpty(point))
             {
                 Debug.LogWarning(
-                    $"Tried to dig out hallway {point} but there was already {Grid[point.y, point.x]} there."
+                    $"Tried to dig out hallway {point} but there was already {Grid[point]} there."
                 );
                 return false;
-            } else if (InBounds(leftPt) && !IsEmpty(leftPt))
+            } else if (Grid.InBounds(leftPt) && !Grid.IsEmpty(leftPt))
             {
                 Debug.LogWarning(
-                    $"Tried to dig out hallway {point} but there was already something to the left of it {Grid[leftPt.y, leftPt.x]}."
+                    $"Tried to dig out hallway {point} but there was already something to the left of it {Grid[leftPt]}."
                 );
                 return false;
-            } else if (InBounds(rightPt) && !IsEmpty(rightPt))
+            } else if (Grid.InBounds(rightPt) && !Grid.IsEmpty(rightPt))
             {
                 Debug.LogWarning(
-                    $"Tried to dig out hallway {point} but there was already something to the right of it {Grid[rightPt.y, rightPt.x]}."
+                    $"Tried to dig out hallway {point} but there was already something to the right of it {Grid[rightPt]}."
                 );
                 return false;
-            } else if (requireForwardFree && InBounds(fwdPt) && !IsEmpty(fwdPt))
+            } else if (requireForwardFree && Grid.InBounds(fwdPt) && !Grid.IsEmpty(fwdPt))
             {
                 Debug.LogWarning(
-                    $"Tried to dig out hallway {point} but there was already something to the ahead of it {Grid[fwdPt.y, fwdPt.x]}."
+                    $"Tried to dig out hallway {point} but there was already something to the ahead of it {Grid[fwdPt]}."
                 );
                 return false;
             }
 
-            Grid[point.y, point.x] = hallway.Id;
+            Grid[point] = hallway.Id;
             hallway.Hallway.Add(point);
             return true;
         }
@@ -593,7 +435,7 @@ namespace ProcDungeon
                 }
 
                 i++;
-                if (i > LevelSize)
+                if (i > Grid.LargestManhattanDistance)
                 {
                     return false;
                 }
@@ -659,7 +501,7 @@ namespace ProcDungeon
 
                         hallwayLength++;
 
-                        if (hallwayLength > LevelSize)
+                        if (hallwayLength > Grid.LargestManhattanDistance)
                         {
                             Debug.LogError($"Failed to dig hallway from {hallway.Source} to {hallway.Destination}; gave up after {hallwayLength}");
                             return false;
@@ -668,7 +510,7 @@ namespace ProcDungeon
                 }
 
                 hallwayLength++;
-                if (hallwayLength > LevelSize)
+                if (hallwayLength > Grid.LargestManhattanDistance)
                 {
                     Debug.LogError($"Failed to dig hallway from {hallway.Source} to {hallway.Destination}; gave up after {hallwayLength}");
                     return false;
