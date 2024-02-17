@@ -8,10 +8,23 @@ namespace ProcDungeon {
     {
         public DungeonGrid DungeonGrid {  get; set; }
 
+        bool canRecieveInput = true;        
+
+        public Vector2Int Coordinates { get; private set; }
+        public Vector2Int Direction {  get; private set; }
+
         public void Teleport(Vector2Int target, Vector2Int direction)
         {
             transform.position = DungeonGrid.LocalWorldPosition(target);
             transform.rotation = DungeonGrid.LocalWorldRotation(direction);
+
+            Coordinates = target;
+            Direction = direction;
+        }
+
+        public void Rotate(Vector2Int direction)
+        {
+            if (direction == Direction) return;
         }
 
         private static Vector2Int ChooseStartPosition(
