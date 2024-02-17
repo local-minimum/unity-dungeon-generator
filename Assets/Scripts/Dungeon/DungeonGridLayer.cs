@@ -60,6 +60,8 @@ namespace ProcDungeon
 
         public bool IsHallway(Vector2Int point) => this[point] > EMPTY_SPACE;
 
+        public bool Accessible(Vector2Int point) => this[point] != EMPTY_SPACE;
+
         public bool GetEmptyNeighbour(Vector2Int point, out Vector2Int neighbour)
         {
             for (int i = 0; i < 4; i++)

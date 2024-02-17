@@ -166,7 +166,7 @@ namespace ProcDungeon
                     Grid[perimeter] = DungeonGridLayer.ROOM_CORNER;
 
                     // Concave rotation
-                    if (dNext.IsCWRotationOf(dPrev))
+                    if (dNext.IsCCWRotationOf(dPrev))
                     {
                         Grid[prev] = DungeonGridLayer.ROOM_FORBIDDEN_EXIT;
                         Grid[next] = DungeonGridLayer.ROOM_FORBIDDEN_EXIT;

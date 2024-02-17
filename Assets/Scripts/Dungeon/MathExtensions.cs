@@ -58,16 +58,16 @@ namespace ProcDungeon
         public static bool IsInverseDirection(this Vector2Int direction1, Vector2Int direction2) =>
             direction1.x == -direction2.x && direction1.y == -direction2.y;
 
-        public static bool IsCCWRotationOf(this Vector2Int cardinal1, Vector2Int cardinal2) =>
-           cardinal1.RotateCCW() == cardinal2;
-
         public static bool IsCWRotationOf(this Vector2Int cardinal1, Vector2Int cardinal2) =>
            cardinal1.RotateCW() == cardinal2;
 
-        public static Vector2Int RotateCW(this Vector2Int direction) =>
-            new Vector2Int(-direction.y, direction.x);
+        public static bool IsCCWRotationOf(this Vector2Int cardinal1, Vector2Int cardinal2) =>
+           cardinal1.RotateCCW() == cardinal2;
 
         public static Vector2Int RotateCCW(this Vector2Int direction) =>
+            new Vector2Int(-direction.y, direction.x);
+
+        public static Vector2Int RotateCW(this Vector2Int direction) =>
             new Vector2Int(direction.y, -direction.x);
 
         public static int ManhattanDistance(this Vector2Int point, Vector2Int other) =>

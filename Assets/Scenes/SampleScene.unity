@@ -164,6 +164,8 @@ GameObject:
   m_Component:
   - component: {fileID: 659351219}
   - component: {fileID: 659351218}
+  - component: {fileID: 659351220}
+  - component: {fileID: 659351221}
   m_Layer: 0
   m_Name: Level
   m_TagString: Untagged
@@ -183,7 +185,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9470577dca12bf42b8415e2f392a47f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerControllerPrefab: {fileID: 3790567743967374861, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
   settings:
     tileSize: 3
     gridSizeColumns: 64
@@ -203,6 +204,7 @@ MonoBehaviour:
   debugFloorPrefab: {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
   debugWallPrefab: {fileID: 119448252790878994, guid: a727263e769661f488fe51b2e44547a8, type: 3}
   generatedLevel: {fileID: 303964769}
+  PlayerController: {fileID: 836635394}
 --- !u!4 &659351219
 Transform:
   m_ObjectHideFlags: 0
@@ -217,8 +219,197 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 303964769}
+  - {fileID: 836635393}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &659351220
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 659351217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: c5ad35445b5b09a469a4d92b6d0566af, type: 3}
+  m_NotificationBehavior: 2
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents:
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 836635394}
+        m_TargetAssemblyTypeName: ProcDungeon.PlayerController, Assembly-CSharp
+        m_MethodName: OnMoveForward
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 8ac05970-904b-482e-be9e-5c3a5355738a
+    m_ActionName: DungeonNavigation/Forward[/Keyboard/w]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 659351218}
+        m_TargetAssemblyTypeName: DungeonLevelGenerator, Assembly-CSharp
+        m_MethodName: OnGenerateNextLevel
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: aa6abf8f-2ea6-4290-877c-653e1b5e946b
+    m_ActionName: GenerationDebug/GenerateDungeon[/Keyboard/r]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 659351221}
+        m_TargetAssemblyTypeName: ActionMapsController, Assembly-CSharp
+        m_MethodName: OnUseDebugActionMap
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: c5a56f9a-ebea-4895-80e2-60e4347e6afe
+    m_ActionName: DungeonNavigation/New action
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 659351221}
+        m_TargetAssemblyTypeName: ActionMapsController, Assembly-CSharp
+        m_MethodName: OnRestoreActionMapOnCancel
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 33e31cdd-d5f3-4293-8b95-512909633924
+    m_ActionName: GenerationDebug/New action
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 836635394}
+        m_TargetAssemblyTypeName: ProcDungeon.PlayerController, Assembly-CSharp
+        m_MethodName: OnMoveBackward
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 92fd850a-cb13-48a1-a637-e56c16505996
+    m_ActionName: DungeonNavigation/New action
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 836635394}
+        m_TargetAssemblyTypeName: ProcDungeon.PlayerController, Assembly-CSharp
+        m_MethodName: OnStrafeLeft
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: a00105e2-bedf-4660-9db6-8b4d9595845d
+    m_ActionName: DungeonNavigation/New action
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 836635394}
+        m_TargetAssemblyTypeName: ProcDungeon.PlayerController, Assembly-CSharp
+        m_MethodName: OnStrafeRight
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 6553b8d2-0e2b-4716-8cf7-6393ab72a9ee
+    m_ActionName: DungeonNavigation/New action
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 836635394}
+        m_TargetAssemblyTypeName: ProcDungeon.PlayerController, Assembly-CSharp
+        m_MethodName: OnRotateCW
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 7f92f405-7acc-4298-ad6e-d72b6c9e70af
+    m_ActionName: DungeonNavigation/Rotate ClockWise[/Keyboard/e,/Keyboard/end]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 836635394}
+        m_TargetAssemblyTypeName: ProcDungeon.PlayerController, Assembly-CSharp
+        m_MethodName: OnRotateCCW
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: eb1f3d83-2e5a-4f3d-bd94-9e49e7fbe700
+    m_ActionName: DungeonNavigation/Rotate CounterClockWise[/Keyboard/q,/Keyboard/home]
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: Keyboard
+  m_DefaultActionMap: DungeonNavigation
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
+--- !u!114 &659351221
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 659351217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13329f8b65a2de746bd87c8aa85af0a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AllowDebugActions: 1
+  DebugActionMap: GenerationDebug
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -313,6 +504,79 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1001 &836635392
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 659351219}
+    m_Modifications:
+    - target: {fileID: 2400304256510812611, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2400304256510812611, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2400304256510812611, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2400304256510812611, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2400304256510812611, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2400304256510812611, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2400304256510812611, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2400304256510812611, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2400304256510812611, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2400304256510812611, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6087846274010985868, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_Name
+      value: Player
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+--- !u!4 &836635393 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2400304256510812611, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+  m_PrefabInstance: {fileID: 836635392}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &836635394 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3790567743967374861, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+  m_PrefabInstance: {fileID: 836635392}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94b366a97bdb64e4b8e405cfc276fb7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

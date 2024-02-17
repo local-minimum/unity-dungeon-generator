@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace ProcDungeon {
     public class PlayerController : MonoBehaviour
@@ -13,18 +14,76 @@ namespace ProcDungeon {
         public Vector2Int Coordinates { get; private set; }
         public Vector2Int Direction {  get; private set; }
 
-        public void Teleport(Vector2Int target, Vector2Int direction)
+        public bool Teleport(Vector2Int target)
         {
-            transform.position = DungeonGrid.LocalWorldPosition(target);
-            transform.rotation = DungeonGrid.LocalWorldRotation(direction);
+            if (DungeonGrid.Dungeon.InBounds(target) && DungeonGrid.Dungeon.Accessible(target))
+            {
+                transform.position = DungeonGrid.LocalWorldPosition(target);
+                Coordinates = target;
+                return true;
+            }
+            return false;
+        }
 
-            Coordinates = target;
-            Direction = direction;
+        public bool Teleport(Vector2Int target, Vector2Int direction)
+        {
+            if (DungeonGrid.Dungeon.InBounds(target) && DungeonGrid.Dungeon.Accessible(target))
+            {
+                transform.position = DungeonGrid.LocalWorldPosition(target);
+                transform.rotation = DungeonGrid.LocalWorldRotation(direction);
+
+                Coordinates = target;
+                Direction = direction;
+                return true;
+            }
+            return false;
         }
 
         public void Rotate(Vector2Int direction)
         {
             if (direction == Direction) return;
+        }
+
+        public void OnMoveForward(InputAction.CallbackContext context)
+        {
+            if (!canRecieveInput || !context.performed) return;
+
+            Teleport(Coordinates + Direction);
+        }
+
+        public void OnMoveBackward(InputAction.CallbackContext context)
+        {
+            if (!canRecieveInput || !context.performed) return;
+
+            Teleport(Coordinates - Direction);
+        }
+
+        public void OnStrafeLeft(InputAction.CallbackContext context)
+        {
+            if (!canRecieveInput || !context.performed) return;
+
+            Teleport(Coordinates + Direction.RotateCCW());
+        }
+
+        public void OnStrafeRight(InputAction.CallbackContext context)
+        {
+            if (!canRecieveInput || !context.performed) return;
+
+            Teleport(Coordinates + Direction.RotateCW());
+        }
+
+        public void OnRotateCW(InputAction.CallbackContext context)
+        {
+            if (!canRecieveInput || !context.performed) return;
+
+            Teleport(Coordinates, Direction.RotateCW());
+        }
+
+        public void OnRotateCCW(InputAction.CallbackContext context)
+        {
+            if (!canRecieveInput || !context.performed) return;
+
+            Teleport(Coordinates, Direction.RotateCCW());
         }
 
         private static Vector2Int ChooseStartPosition(
@@ -81,6 +140,7 @@ namespace ProcDungeon {
                 .Where(c => c.HubSeparation >= candidate.HubSeparation - 1)
                 .OrderBy(_ => Random.value)
                 .FirstOrDefault();
+
             return ChooseStartPosition (room, dungeonGridLayer);    
         }
     }

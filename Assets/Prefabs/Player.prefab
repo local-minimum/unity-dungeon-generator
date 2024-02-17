@@ -57,6 +57,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Test Player Character
       objectReference: {fileID: 0}
+    - target: {fileID: 5594930170044828499, guid: 94a790975579c0b49985d5709b81f04b, type: 3}
+      propertyPath: field of view
+      value: 92.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6763952356748911333, guid: 94a790975579c0b49985d5709b81f04b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.084
+      objectReference: {fileID: 0}
     - target: {fileID: 8066544456912268556, guid: 94a790975579c0b49985d5709b81f04b, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

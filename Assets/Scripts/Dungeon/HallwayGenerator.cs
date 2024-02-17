@@ -244,7 +244,7 @@ namespace ProcDungeon
         private void AddRoomExitAndBlockNeighbours(Vector2Int point, Vector2Int exitDirection)
         {
             Grid[point] = DungeonGridLayer.ROOM_EXIT;
-            foreach (var direction in new[] { exitDirection.RotateCCW(), exitDirection.RotateCW() })
+            foreach (var direction in new[] { exitDirection.RotateCW(), exitDirection.RotateCCW() })
             {
                 var neigbour = point + direction;
                 if (Grid.InBounds(neigbour) && Grid[neigbour] == DungeonGridLayer.ROOM_PERIMETER)
@@ -390,8 +390,8 @@ namespace ProcDungeon
                 return false;
             }
 
-            var leftPt = point + direction.RotateCCW();
-            var rightPt = point + direction.RotateCW();
+            var leftPt = point + direction.RotateCW();
+            var rightPt = point + direction.RotateCCW();
             var fwdPt = point + direction;
 
             if (!Grid.IsEmpty(point))

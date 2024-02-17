@@ -1,13 +1,11 @@
 using UnityEngine;
 using ProcDungeon;
-using UnityEngine.UIElements;
 using System.Linq;
+using UnityEngine.InputSystem;
+using System.Collections.Concurrent;
 
 public class DungeonLevelGenerator : MonoBehaviour
 {
-    [SerializeField]
-    PlayerController playerControllerPrefab;
-
     [SerializeField]
     DungeonLevelSetting settings;
 
@@ -23,7 +21,7 @@ public class DungeonLevelGenerator : MonoBehaviour
     [SerializeField]
     Transform generatedLevel;
 
-    public PlayerController PlayerController { get; private set; }
+    public PlayerController PlayerController;
     public DungeonGrid DungeonGrid { get; private set; }
 
     void GenerateLevel(int seed)
@@ -68,11 +66,6 @@ public class DungeonLevelGenerator : MonoBehaviour
             .OrderBy(direction => Mathf.Min(Mathf.Abs(direction.x), Mathf.Abs(direction.y)))
             .ToList();
 
-        if (PlayerController == null)
-        {
-            PlayerController = Instantiate(playerControllerPrefab, transform);
-        }
-
         PlayerController.DungeonGrid = DungeonGrid;
 
         Debug.Log($"Player spawns at {spawnPosition} in room {spawnRoom}");
@@ -87,9 +80,19 @@ public class DungeonLevelGenerator : MonoBehaviour
         }
     }
 
+
     private void Start()
     {
+
         GenerateLevel(seed);
+    }
+
+    public void OnGenerateNextLevel(InputAction.CallbackContext context)
+    { 
+        if (context.performed)
+        {
+            GenerateLevel(Mathf.RoundToInt(Random.value * 10000));
+        }
     }
 
     private void DebugPlaceHallways(HallwayGenerator hallwayGenerator)
@@ -159,11 +162,4 @@ public class DungeonLevelGenerator : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            GenerateLevel(Mathf.RoundToInt(Random.value * 10000));
-        }
-    }
 }

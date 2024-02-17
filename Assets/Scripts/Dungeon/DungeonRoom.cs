@@ -113,7 +113,7 @@ namespace ProcDungeon
                 return;
             }
 
-            var orthoDirection = perimeterDirection.RotateCCW();
+            var orthoDirection = perimeterDirection.RotateCW();
             int steps = 0;
             while (steps < MAX_PERIMETER_LENGTH)
             {
@@ -127,7 +127,7 @@ namespace ProcDungeon
                 if (ContainsBySegments(orthoCandidate))
                 {
                     perimeterDirection = orthoDirection;
-                    orthoDirection = perimeterDirection.RotateCCW();
+                    orthoDirection = perimeterDirection.RotateCW();
 
                     perimeterPt = orthoCandidate;
                      
@@ -140,7 +140,7 @@ namespace ProcDungeon
                     } else
                     {
                         orthoDirection = perimeterDirection;
-                        perimeterDirection = perimeterDirection.RotateCW();
+                        perimeterDirection = perimeterDirection.RotateCCW();
                     }
                 }
 
