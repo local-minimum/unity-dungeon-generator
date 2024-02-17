@@ -9,10 +9,10 @@ namespace ProcDungeon
         private List<DungeonRoom> _Rooms = new List<DungeonRoom>();
         public List<DungeonRoom> Rooms => _Rooms;
 
-        private DungeonGrid Grid;
+        private DungeonGridLayer Grid;
         private DungeonLevelSetting settings;
 
-        public RoomGenerator(DungeonGrid grid, ref DungeonLevelSetting settings) { 
+        public RoomGenerator(DungeonGridLayer grid, ref DungeonLevelSetting settings) { 
             Grid = grid;
             this.settings = settings;
         }
@@ -144,7 +144,7 @@ namespace ProcDungeon
         {
             foreach (var interior in room.Interior)
             {
-                Grid[interior] = DungeonGrid.ROOM_INTERIOR;
+                Grid[interior] = DungeonGridLayer.ROOM_INTERIOR;
             }
 
             if (room.Perimeter.Count == 0) return;
@@ -163,26 +163,26 @@ namespace ProcDungeon
                 // We're at a corner
                 if (dNext.IsOrthogonalCardinal(dPrev))
                 {
-                    Grid[perimeter] = DungeonGrid.ROOM_CORNER;
+                    Grid[perimeter] = DungeonGridLayer.ROOM_CORNER;
 
                     // Concave rotation
                     if (dNext.IsCWRotationOf(dPrev))
                     {
-                        Grid[prev] = DungeonGrid.ROOM_FORBIDDEN_EXIT;
-                        Grid[next] = DungeonGrid.ROOM_FORBIDDEN_EXIT;
+                        Grid[prev] = DungeonGridLayer.ROOM_FORBIDDEN_EXIT;
+                        Grid[next] = DungeonGridLayer.ROOM_FORBIDDEN_EXIT;
                         // Not yet bee set by concave rotation rule
                     }
                 }
-                else if (Grid[perimeter] == DungeonGrid.EMPTY_SPACE)
+                else if (Grid[perimeter] == DungeonGridLayer.EMPTY_SPACE)
                 {
                     // On the egde of the grid
                     if (perimeter.y == 0 || perimeter.x == 0 || perimeter.y == lastRow || perimeter.x == lastCol)
                     {
-                        Grid[perimeter] = DungeonGrid.ROOM_FORBIDDEN_EXIT;
+                        Grid[perimeter] = DungeonGridLayer.ROOM_FORBIDDEN_EXIT;
                     }
                     else
                     {
-                        Grid[perimeter] = DungeonGrid.ROOM_PERIMETER;
+                        Grid[perimeter] = DungeonGridLayer.ROOM_PERIMETER;
                     }
                 }
 
@@ -191,20 +191,59 @@ namespace ProcDungeon
 
             }
 
-            if (Grid[perimeter] == DungeonGrid.EMPTY_SPACE)
+            if (Grid[perimeter] == DungeonGridLayer.EMPTY_SPACE)
             {
                 if (perimeter.y == 0 || perimeter.x == 0 || perimeter.y == lastRow || perimeter.x == lastCol)
                 {
-                    Grid[perimeter] = DungeonGrid.ROOM_FORBIDDEN_EXIT;
+                    Grid[perimeter] = DungeonGridLayer.ROOM_FORBIDDEN_EXIT;
                 }
                 else if (room.Perimeter[0] - perimeter == perimeter - prev)
                 {
-                    Grid[perimeter] = DungeonGrid.ROOM_PERIMETER;
+                    Grid[perimeter] = DungeonGridLayer.ROOM_PERIMETER;
                 }
                 else
                 {
-                    Grid[perimeter] = DungeonGrid.ROOM_CORNER;
+                    Grid[perimeter] = DungeonGridLayer.ROOM_CORNER;
                 }
+            }
+        }
+
+        public void CalculateHubSeparations()
+        {
+            var calculated = new List<DungeonRoom>();
+            for (int i = 0, n = Rooms.Count; i < n; i++)
+            {
+                var room = Rooms[i];
+                if (room.Exits.Count > 2)
+                {
+                    room.HubSeparation = 0;
+                    calculated.Add(room);
+                }
+            }
+
+            if (calculated.Count == 0)
+            {
+                for (int i = 0, n = Rooms.Count; i < n; i++)
+                {
+                    Rooms[i].HubSeparation = settings.maxRooms;
+                }
+                return;
+            }
+
+            int roomIdx = 0;
+            while (roomIdx < calculated.Count)
+            {
+                var room = calculated[roomIdx];
+                for (int exitId = 0, n = room.Exits.Count; exitId < n; exitId++)
+                {
+                    var otherRoom = room.Exits[exitId].OtherRoom(room);
+                    if (otherRoom == null || calculated.Contains(otherRoom)) continue;
+
+                    otherRoom.HubSeparation = room.HubSeparation + 1;
+                    calculated.Add(otherRoom);
+                }
+
+                roomIdx++;
             }
         }
     }

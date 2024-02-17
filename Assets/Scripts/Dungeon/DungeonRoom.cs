@@ -14,6 +14,8 @@ namespace ProcDungeon
         /** Actual corners max sides inclusive */
         public readonly Vector2Int[] BoundingCorners;
         public readonly Vector2Int Center;
+        public readonly List<DungeonHallway> Exits = new List<DungeonHallway>();
+        public int HubSeparation {  get; set; }
 
         private List<RectInt> _Segments;
 
@@ -225,6 +227,14 @@ namespace ProcDungeon
 
             Debug.LogError($"{this} lacked exit direction for perimeter point {perimeterPoint}");
             return Vector2Int.zero;
+        }
+
+        public IEnumerable<Vector2Int> DirectionToExits(Vector2Int position)
+        {
+            foreach (var hall in Exits)
+            {
+                yield return hall.MyRoomExit(this) - position;
+            }
         }
     }
 }

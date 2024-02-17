@@ -1,8 +1,13 @@
 using UnityEngine;
 using ProcDungeon;
+using UnityEngine.UIElements;
+using System.Linq;
 
 public class DungeonLevelGenerator : MonoBehaviour
 {
+    [SerializeField]
+    PlayerController playerControllerPrefab;
+
     [SerializeField]
     DungeonLevelSetting settings;
 
@@ -18,6 +23,9 @@ public class DungeonLevelGenerator : MonoBehaviour
     [SerializeField]
     Transform generatedLevel;
 
+    public PlayerController PlayerController { get; private set; }
+    public DungeonGrid DungeonGrid { get; private set; }
+
     void GenerateLevel(int seed)
     {
         foreach (Transform t in generatedLevel.transform)
@@ -27,7 +35,9 @@ public class DungeonLevelGenerator : MonoBehaviour
 
         Random.InitState(seed);
 
-        var grid = new DungeonGrid(settings);
+        var grid = new DungeonGridLayer(settings);
+
+        DungeonGrid = new DungeonGrid(grid, settings);
 
         var segmenter = new GridSegmenter(ref settings);
         segmenter.Segment();
@@ -38,10 +48,43 @@ public class DungeonLevelGenerator : MonoBehaviour
 
         var hallwayGenerator = new HallwayGenerator(grid, roomGenerator.Rooms, ref settings);
         hallwayGenerator.MakeHallways();
+        
+        roomGenerator.CalculateHubSeparations();
 
         DebugPlaceHallways(hallwayGenerator);
 
         DebugPlaceRooms(roomGenerator, hallwayGenerator);
+
+        SpawnPlayer(roomGenerator);
+    }
+
+    private void SpawnPlayer(RoomGenerator roomGenerator)
+    {
+        DungeonRoom spawnRoom;
+
+        var spawnPosition = PlayerController.ChooseStartPosition(roomGenerator.Rooms, DungeonGrid.Dungeon, out spawnRoom);
+        var lookDirections = spawnRoom
+            .DirectionToExits(spawnPosition)
+            .OrderBy(direction => Mathf.Min(Mathf.Abs(direction.x), Mathf.Abs(direction.y)))
+            .ToList();
+
+        if (PlayerController == null)
+        {
+            PlayerController = Instantiate(playerControllerPrefab, transform);
+        }
+
+        PlayerController.DungeonGrid = DungeonGrid;
+
+        Debug.Log($"Player spawns at {spawnPosition} in room {spawnRoom}");
+        
+        if (lookDirections.Count > 0)
+        {
+            PlayerController.Teleport(spawnPosition, lookDirections.First().MainDirection());
+        }
+        else
+        {
+            PlayerController.Teleport(spawnPosition, MathExtensions.RandomDirection());
+        }
     }
 
     private void Start()
@@ -56,7 +99,7 @@ public class DungeonLevelGenerator : MonoBehaviour
             foreach (var tileCoordinates in hallway.Hallway)
             {
                 var floor = Instantiate(debugFloorPrefab, generatedLevel);
-                floor.transform.position = new Vector3(tileCoordinates.x * settings.tileSize, 0, tileCoordinates.y * settings.tileSize);
+                floor.transform.position = DungeonGrid.LocalWorldPosition(tileCoordinates);
                 floor.name = $"Hallway {hallway.Id} Floor {tileCoordinates}";
 
             }
@@ -78,7 +121,7 @@ public class DungeonLevelGenerator : MonoBehaviour
             foreach (var tileCoordinates in room.Perimeter)
             {
                 var floor = Instantiate(debugFloorPrefab, generatedLevel);
-                floor.transform.position = new Vector3(tileCoordinates.x * settings.tileSize, 0, tileCoordinates.y * settings.tileSize);
+                floor.transform.position = DungeonGrid.LocalWorldPosition(tileCoordinates);
                 floor.name = $"Room {room.RoomId} Perimeter {tileCoordinates}";
 
                 foreach (var direction in MathExtensions.CardinalDirections)

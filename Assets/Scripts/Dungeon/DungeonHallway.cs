@@ -19,7 +19,8 @@ namespace ProcDungeon
 
         public bool Contains(Vector2Int pt) => Hallway.Contains(pt);
         public bool IsHallExit(Vector2Int pt) => SourceExit == pt || DestinationExit == pt;
-
+        public DungeonRoom OtherRoom(DungeonRoom room) => SourceRoom == room ? DestinationRoom : SourceRoom;
+        public Vector2Int MyRoomExit(DungeonRoom room) => SourceRoom == room ? SourceExit : DestinationExit;
         public DungeonHallway(DungeonRoom sourceRoom, Vector2Int source, Vector2Int sourceExit, DungeonRoom destinationRoom, Vector2Int destination, Vector2Int destinationExit, int id)
         {
             SourceRoom = sourceRoom;

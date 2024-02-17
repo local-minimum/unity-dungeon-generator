@@ -18,6 +18,8 @@ namespace ProcDungeon
             Vector2Int.left, Vector2Int.up, Vector2Int.right, Vector2Int.down,
         };
 
+        public static Vector2Int RandomDirection() => CardinalDirections[Random.Range(0, 4)];
+
         public static int SmallestDimension(this Vector2Int vector) => Mathf.Min(Mathf.Abs(vector.x), Mathf.Abs(vector.y));
 
         public static Vector2Int OrthoIntersection(this Vector2Int point, Vector2Int target, Vector2Int direction)
@@ -29,13 +31,17 @@ namespace ProcDungeon
             return new Vector2Int(target.x, point.y);
         }
 
-        public static Vector2Int MainDirection(this Vector2Int source, Vector2Int destination) { 
-            var direction = destination - source;
+        public static Vector2Int MainDirection(this Vector2Int source, Vector2Int destination) =>
+            (destination - source).MainDirection();        
+
+        public static Vector2Int MainDirection(this Vector2Int direction)
+        {
             if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
             {
                 direction.x = direction.x.Sign();
                 direction.y = 0;
-            } else
+            }
+            else
             {
                 direction.x = 0;
                 direction.y = direction.y.Sign();

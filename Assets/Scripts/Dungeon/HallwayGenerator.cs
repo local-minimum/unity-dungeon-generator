@@ -9,13 +9,13 @@ namespace ProcDungeon
 {
     public class HallwayGenerator
     {
-        private DungeonGrid Grid;
+        private DungeonGridLayer Grid;
         private DungeonLevelSetting settings;
         private List<DungeonRoom> Rooms;
         private List<DungeonHallway> _Hallways = new List<DungeonHallway>();
         public List<DungeonHallway> Hallways => _Hallways;
 
-        public HallwayGenerator(DungeonGrid grid, List<DungeonRoom> rooms, ref DungeonLevelSetting settings)
+        public HallwayGenerator(DungeonGridLayer grid, List<DungeonRoom> rooms, ref DungeonLevelSetting settings)
         {
             this.settings = settings;
             Rooms = rooms;
@@ -96,10 +96,7 @@ namespace ProcDungeon
                 var hallway = Connect(room, closestRoom);
                 if (hallway != null && hallway.Valid)
                 {
-                    Debug.Log($"Connected rooms {hallway.SourceRoom.RoomId} with {hallway.DestinationRoom.RoomId}");
-                    _Hallways.Add(hallway);
-                    AddRoomExitAndBlockNeighbours(hallway.SourceExit, hallway.Source - hallway.SourceExit);
-                    AddRoomExitAndBlockNeighbours(hallway.DestinationExit, hallway.Destination - hallway.DestinationExit);
+                    FinalizeHallway(hallway);
                 } else
                 {
                     Debug.LogWarning($"Failed to connect {room} with {closestRoom}");
@@ -107,6 +104,24 @@ namespace ProcDungeon
                 }
             }
         }
+
+        private void FinalizeHallway(DungeonHallway hallway)
+        {
+            Debug.Log($"Connected rooms {hallway.SourceRoom.RoomId} with {hallway.DestinationRoom.RoomId}");
+
+            _Hallways.Add(hallway);
+            if (hallway.SourceRoom != null)
+            {
+                AddRoomExitAndBlockNeighbours(hallway.SourceExit, hallway.Source - hallway.SourceExit);
+                hallway.SourceRoom.Exits.Add(hallway);
+            }
+            if (hallway.DestinationRoom != null)
+            {
+                AddRoomExitAndBlockNeighbours(hallway.DestinationExit, hallway.Destination - hallway.DestinationExit);
+                hallway.DestinationRoom.Exits.Add(hallway);
+            }            
+        }
+
         private void GroupRooms(List<DungeonRoom> grouped, Queue<DungeonRoom> newGrouped)
         {
             while (newGrouped.Count > 0)
@@ -196,10 +211,7 @@ namespace ProcDungeon
                 var hallway = Connect(candidate, connector);
                 if (hallway != null && hallway.Valid)
                 {
-                    Debug.Log($"Heal connected rooms {hallway.SourceRoom.RoomId} with {hallway.DestinationRoom.RoomId}");
-                    _Hallways.Add(hallway);
-                    AddRoomExitAndBlockNeighbours(hallway.SourceExit, hallway.Source - hallway.SourceExit);
-                    AddRoomExitAndBlockNeighbours(hallway.DestinationExit, hallway.Destination - hallway.DestinationExit);
+                    FinalizeHallway(hallway);
 
                     ungrouped.Remove(candidate);
                     newGrouped.Enqueue(candidate);
@@ -225,19 +237,19 @@ namespace ProcDungeon
         {
             foreach (var hallPt in hallway.Hallway)
             {
-                Grid[hallPt] = DungeonGrid.EMPTY_SPACE;
+                Grid[hallPt] = DungeonGridLayer.EMPTY_SPACE;
             }
         }
 
         private void AddRoomExitAndBlockNeighbours(Vector2Int point, Vector2Int exitDirection)
         {
-            Grid[point] = DungeonGrid.ROOM_EXIT;
+            Grid[point] = DungeonGridLayer.ROOM_EXIT;
             foreach (var direction in new[] { exitDirection.RotateCCW(), exitDirection.RotateCW() })
             {
                 var neigbour = point + direction;
-                if (Grid.InBounds(neigbour) && Grid[neigbour] == DungeonGrid.ROOM_PERIMETER)
+                if (Grid.InBounds(neigbour) && Grid[neigbour] == DungeonGridLayer.ROOM_PERIMETER)
                 {
-                    Grid[neigbour] = DungeonGrid.ROOM_FORBIDDEN_EXIT;
+                    Grid[neigbour] = DungeonGridLayer.ROOM_FORBIDDEN_EXIT;
                 }
             }
         }
