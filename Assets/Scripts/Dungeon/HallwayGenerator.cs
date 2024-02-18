@@ -87,39 +87,63 @@ namespace ProcDungeon
           
             return closest != null;
         }
-
+        
         private void ConnectRooms()
         {
             foreach (var room in Rooms)
             {
-                DungeonRoom closestRoom;
-                if (!FindClosestRoom(room, true, out closestRoom))
-                {
-                    Debug.LogWarning($"Hallways: No room closest to {room}");
-                    continue;
-                }
+                AddHallwayTo(room);
+            }
+        }
 
-                if (closestRoom.Size == 0)
-                {
-                    Debug.LogError($"Hallways: Found room without size {closestRoom}");
-                    continue;
-                }
+        public void AddExtraHallway()
+        {
+            var candidates = Rooms
+                .Where(room => room.HubSeparation > 1)
+                .OrderByDescending(room => room.HubSeparation)
+                .ToList();
 
-                if (room == closestRoom)
-                {
-                    Debug.LogError($"Hallways: Found myself {room} == {closestRoom}");
-                    continue;
-                }
+            if (candidates.Count == 0) return;
 
-                var hallway = Connect(room, closestRoom);
-                if (hallway != null && hallway.Valid)
-                {
-                    FinalizeHallway(hallway);
-                } else
-                {
-                    Debug.LogWarning($"Failed to connect {room} with {closestRoom}");
-                    if (hallway != null) ClearHallway(hallway);
-                }
+            var mostDistant = candidates.First();
+            if (mostDistant.HubSeparation > 3)
+            {
+                candidates = candidates.Where(room => room.HubSeparation > mostDistant.HubSeparation - 2).ToList();
+            }
+
+            AddHallwayTo(candidates[Random.Range(0, candidates.Count)]);
+        }
+
+        void AddHallwayTo(DungeonRoom room)
+        {
+            DungeonRoom closestRoom;
+            if (!FindClosestRoom(room, true, out closestRoom))
+            {
+                Debug.LogWarning($"Hallways: No room closest to {room}");
+                return;
+            }
+
+            if (closestRoom.Size == 0)
+            {
+                Debug.LogError($"Hallways: Found room without size {closestRoom}");
+                return;
+            }
+
+            if (room == closestRoom)
+            {
+                Debug.LogError($"Hallways: Found myself {room} == {closestRoom}");
+                return;
+            }
+
+            var hallway = Connect(room, closestRoom);
+            if (hallway != null && hallway.Valid)
+            {
+                FinalizeHallway(hallway);
+            }
+            else
+            {
+                Debug.LogWarning($"Failed to connect {room} with {closestRoom}");
+                if (hallway != null) ClearHallway(hallway);
             }
         }
 
@@ -277,7 +301,7 @@ namespace ProcDungeon
             var distances = new VoronoiDistanceGrid(settings, Grid.Accessible);
             if (distances.MaxDistance <= 1) return;
 
-            var candidates = distances.Coordinates(distances.MaxDistance).ToList();            
+            var candidates = distances.Coordinates(Random.Range(2, distances.MaxDistance)).ToList();            
             var deadEnd = candidates[Random.Range(0, candidates.Count)];
 
             DungeonRoom room;

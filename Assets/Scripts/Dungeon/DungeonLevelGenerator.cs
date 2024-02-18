@@ -49,7 +49,14 @@ public class DungeonLevelGenerator : MonoBehaviour
         
         roomGenerator.CalculateHubSeparations();
 
-        for (int i =0, n=Random.Range(0, 3); i<n; i++)
+        for (int i = 0, n=Random.Range(2, 4); i< n; i++)
+        {
+            hallwayGenerator.AddExtraHallway();
+            roomGenerator.CalculateHubSeparations();
+        }
+
+        // TODO: Add Range to settings
+        for (int i = 0, n=Random.Range(4, 8); i<n; i++)
         {
             hallwayGenerator.AddDeadEndHallway();
         }        
