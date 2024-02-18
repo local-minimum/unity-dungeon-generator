@@ -18,4 +18,7 @@ public class DungeonGrid
         new Vector3(gridCoordinates.x * LevelSetting.tileSize, elevation, gridCoordinates.y * LevelSetting.tileSize);
 
     public Quaternion LocalWorldRotation(Vector2Int direction) => Quaternion.LookRotation(new Vector3(direction.x, 0, direction.y), Vector3.up);
+
+    // TODO: Add logic when we have occupancy rules
+    public bool Accessible(Vector2Int coordinates, EntityType entity) => Dungeon.InBounds(coordinates) && Dungeon.Accessible(coordinates);
 }

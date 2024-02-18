@@ -73,6 +73,9 @@ namespace ProcDungeon
         public static int ManhattanDistance(this Vector2Int point, Vector2Int other) =>
              Mathf.Abs(point.x - other.x) + Mathf.Abs(point.y - other.y);
 
+        public static int ChebyshevDistance(this Vector2Int point, Vector2Int other) =>
+            Mathf.Max(Mathf.Abs(point.x - other.x), Mathf.Abs(point.y - other.y));
+
         public static Vector2Int[] AsUnitComponents(this Vector2Int direction) => new Vector2Int[] { 
             new Vector2Int(direction.x.Sign(), 0),
             new Vector2Int(0, direction.y.Sign())

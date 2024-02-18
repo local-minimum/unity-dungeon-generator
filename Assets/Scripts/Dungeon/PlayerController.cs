@@ -5,8 +5,10 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace ProcDungeon {
-    public class PlayerController : MonoBehaviour
+    public class PlayerController : DungeonEntity
     {
+        public new EntityType EntityType => EntityType.Player;
+
         public DungeonGrid DungeonGrid {  get; set; }
 
         bool canRecieveInput = true;        
@@ -16,7 +18,7 @@ namespace ProcDungeon {
 
         public bool Teleport(Vector2Int target)
         {
-            if (DungeonGrid.Dungeon.InBounds(target) && DungeonGrid.Dungeon.Accessible(target))
+            if (DungeonGrid.Accessible(target, EntityType))
             {
                 transform.position = DungeonGrid.LocalWorldPosition(target);
                 Coordinates = target;
@@ -27,7 +29,7 @@ namespace ProcDungeon {
 
         public bool Teleport(Vector2Int target, Vector2Int direction)
         {
-            if (DungeonGrid.Dungeon.InBounds(target) && DungeonGrid.Dungeon.Accessible(target))
+            if (DungeonGrid.Accessible(target, EntityType))
             {
                 transform.position = DungeonGrid.LocalWorldPosition(target);
                 transform.rotation = DungeonGrid.LocalWorldRotation(direction);

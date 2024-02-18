@@ -38,6 +38,24 @@ namespace ProcDungeon
             Debug.Log($"HalwayGenerator Grid:\n{Grid.ToString(Rooms)}");
         }
 
+        bool FindClosestRoom(Vector2Int position, out DungeonRoom closest)
+        {
+            int closestDistance = Grid.LargestManhattanDistance + 1;
+            closest = null;
+
+            foreach (var room in Rooms)
+            {
+                var distance = position.ManhattanDistance(room.Center);
+                if (distance < closestDistance)
+                {
+                    closest = room;
+                    closestDistance = distance;
+                }
+            }
+
+            return closest != null;
+        }
+
         bool FindClosestRoom(DungeonRoom room, bool excludeConnected, out DungeonRoom closest)
         {
             int closestDistance = Grid.LargestManhattanDistance + 1;
@@ -107,7 +125,7 @@ namespace ProcDungeon
 
         private void FinalizeHallway(DungeonHallway hallway)
         {
-            Debug.Log($"Connected rooms {hallway.SourceRoom.RoomId} with {hallway.DestinationRoom.RoomId}");
+            Debug.Log($"Connected rooms {hallway.SourceRoom.RoomId} with {hallway.DestinationRoom?.RoomId}");
 
             _Hallways.Add(hallway);
             if (hallway.SourceRoom != null)
@@ -253,6 +271,75 @@ namespace ProcDungeon
                 }
             }
         }
+
+        public void AddDeadEndHallway()
+        {
+            var distances = new VoronoiDistanceGrid(settings, Grid.Accessible);
+            if (distances.MaxDistance <= 1) return;
+
+            var candidates = distances.Coordinates(distances.MaxDistance).ToList();            
+            var deadEnd = candidates[Random.Range(0, candidates.Count)];
+
+            DungeonRoom room;
+            if (!FindClosestRoom(deadEnd, out room))
+            {
+                Debug.Log($"Failed to create dead end at {deadEnd}, no rooms");
+                return;
+            }
+
+            Debug.Log($"Connecting {room} to {deadEnd}");
+            var hallway = MakeDeadEndHall(room, deadEnd);
+            if (hallway != null && hallway.Valid)
+            {
+                FinalizeHallway(hallway);
+            }
+            else
+            {
+                Debug.LogWarning($"Failed to connect {room} with {deadEnd}");
+                if (hallway != null) ClearHallway(hallway);
+            }
+        }
+        
+        
+        private DungeonHallway MakeDeadEndHall(DungeonRoom sourceRoom, Vector2Int deadEnd)
+        {
+            var exitCandidates = sourceRoom.Perimeter
+                .Where(coordinates => Grid.IsPerimeter(coordinates))
+                .OrderBy(coordinates => coordinates.ManhattanDistance(deadEnd))
+                .ToList();
+
+            if (exitCandidates.Count == 1) return null;
+
+            var sourceExit = exitCandidates[
+                Random.Range(0, Mathf.Min(exitCandidates.Count, settings.exitCandidateTolerance))
+            ];
+            var sourceExitDirection = sourceRoom.ExitDirection(sourceExit);
+
+            var source = sourceExit + sourceExitDirection;
+            if (
+                (source).ManhattanDistance(deadEnd) > sourceExit.ManhattanDistance(deadEnd)
+            )
+            {
+                // We are facing the wrong way
+                return null;
+            }
+
+            var hallway = new DungeonHallway(sourceRoom, source, sourceExit, null, deadEnd, deadEnd, _Hallways.Count + 1);
+            var diff = deadEnd - source;
+
+            if (diff.SmallestDimension() == 0)
+            {
+                hallway.Valid = DigStraightLine(hallway, source, deadEnd);
+            } else
+            {
+                hallway.Valid = DigElbow(hallway, sourceExitDirection);
+            }
+
+            return hallway;
+        }
+        
+        
+
         private DungeonHallway Connect(DungeonRoom source, DungeonRoom destination)
         {
             int hallwayId = _Hallways.Count + 1;
