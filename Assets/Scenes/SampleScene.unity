@@ -395,7 +395,7 @@ MonoBehaviour:
   m_DefaultControlScheme: Keyboard
   m_DefaultActionMap: DungeonNavigation
   m_SplitScreenIndex: -1
-  m_Camera: {fileID: 0}
+  m_Camera: {fileID: 1444606810}
 --- !u!114 &659351221
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -577,6 +577,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94b366a97bdb64e4b8e405cfc276fb7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!20 &1444606810 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 354920385415889105, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+  m_PrefabInstance: {fileID: 836635392}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
