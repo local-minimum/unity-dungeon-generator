@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace ProcDungeon
@@ -26,6 +27,8 @@ namespace ProcDungeon
         public List<Vector2Int> Interior => _Interior;
 
         public int Size => _Perimeter.Count + _Interior.Count;
+
+        public bool IsTerminus => Exits.Count(hall => hall.OtherRoom(this) != null) < 2;
 
         public bool Contains(Vector2Int point) => _Perimeter.Contains(point) || _Interior.Contains(point);
 

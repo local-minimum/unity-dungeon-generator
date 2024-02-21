@@ -2,7 +2,6 @@ using UnityEngine;
 using ProcDungeon;
 using System.Linq;
 using UnityEngine.InputSystem;
-using System.Collections.Concurrent;
 
 public class DungeonLevelGenerator : MonoBehaviour
 {
@@ -17,6 +16,9 @@ public class DungeonLevelGenerator : MonoBehaviour
 
     [SerializeField]
     GameObject debugWallPrefab;
+
+    [SerializeField]
+    GameObject debugDoorPrefab;
 
     [SerializeField]
     Transform generatedLevel;
@@ -59,37 +61,53 @@ public class DungeonLevelGenerator : MonoBehaviour
         for (int i = 0, n=Random.Range(4, 8); i<n; i++)
         {
             hallwayGenerator.AddDeadEndHallway();
-        }        
+        }
+
+        DungeonRoom spawnRoom;
+        var spawnPosition = PlayerController.ChooseStartPosition(roomGenerator.Rooms, DungeonGrid.Dungeon, out spawnRoom);
+        var spawnLookDirection = SpawnLookDirection(spawnPosition, spawnRoom);
+
+        var puzzleGenerator = new PuzzleGenerator(roomGenerator, spawnRoom, spawnPosition);
+        for (int i = 0; i<Random.Range(2, 4); i++)
+        {
+            var door = puzzleGenerator.AddDoor();
+            if (door == null) break;
+        }
 
         DebugPlaceHallways(hallwayGenerator);
 
         DebugPlaceRooms(roomGenerator, hallwayGenerator);
 
-        SpawnPlayer(roomGenerator);
+        DebugPlaceDoors(puzzleGenerator);
+
+        SpawnPlayer(spawnPosition, spawnLookDirection, spawnRoom);
     }
 
-    private void SpawnPlayer(RoomGenerator roomGenerator)
+    private Vector2Int SpawnLookDirection(Vector2Int spawnPosition, DungeonRoom spawnRoom)
     {
-        DungeonRoom spawnRoom;
-
-        var spawnPosition = PlayerController.ChooseStartPosition(roomGenerator.Rooms, DungeonGrid.Dungeon, out spawnRoom);
         var lookDirections = spawnRoom
             .DirectionToExits(spawnPosition)
             .OrderBy(direction => Mathf.Min(Mathf.Abs(direction.x), Mathf.Abs(direction.y)))
             .ToList();
 
-        PlayerController.DungeonGrid = DungeonGrid;
-
-        Debug.Log($"Player spawns at {spawnPosition} in room {spawnRoom}");
-        
         if (lookDirections.Count > 0)
         {
-            PlayerController.Teleport(spawnPosition, lookDirections.First().MainDirection());
+            return lookDirections.First().MainDirection();
         }
         else
         {
-            PlayerController.Teleport(spawnPosition, MathExtensions.RandomDirection());
+            return MathExtensions.RandomDirection();
         }
+
+    }
+
+    private void SpawnPlayer(Vector2Int spawnPosition, Vector2Int lookDirection, DungeonRoom spawnRoom)
+    {
+        Debug.Log($"Player spawns at {spawnPosition} in room {spawnRoom}");
+        PlayerController.DungeonGrid = DungeonGrid;
+
+        PlayerController.Teleport(spawnPosition, lookDirection);
+
     }
 
 
@@ -104,6 +122,16 @@ public class DungeonLevelGenerator : MonoBehaviour
         if (context.performed)
         {
             GenerateLevel(Mathf.RoundToInt(Random.value * 10000));
+        }
+    }
+
+    private void DebugPlaceDoors(PuzzleGenerator puzzleGenerator)
+    {
+        foreach (var doorInfo in puzzleGenerator.Doors)
+        {
+            var door = Instantiate(debugDoorPrefab, generatedLevel);
+            door.transform.position = DungeonGrid.LocalWorldPosition(doorInfo.Coordinates);
+            door.name = $"Door connecting sector {doorInfo.Sectors[0]} <=> {doorInfo.Sectors[1]}";
         }
     }
 
