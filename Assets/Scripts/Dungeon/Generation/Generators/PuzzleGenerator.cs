@@ -56,11 +56,25 @@ namespace ProcDungeon
 
             var doorCandidate = candidates[Random.Range(0, candidates.Count)];
 
-            // TODO: Update other door refs if needed
             roomSectors[sectorId] = doorCandidate.split[0];
-            roomSectors.Add(doorCandidate.split[1]); 
+            var newSectorId = LevelSectors;
+            roomSectors.Add(doorCandidate.split[1]);
 
-            var door = new DungeonDoor(doorCandidate.info.Room, doorCandidate.info.Hallway, new int[] { sectorId, LevelSectors});
+            // Update existing doors
+            foreach (var existingDoor in Doors)
+            {
+                if (!existingDoor.Sectors.Contains(sectorId)) continue;
+
+                var room = existingDoor.Room;
+                var otherRoom = existingDoor.Hallway.OtherRoom(room);
+
+                if (roomSectors[newSectorId].Contains(room) || roomSectors[newSectorId].Contains(otherRoom))
+                {
+                    existingDoor.Sectors[existingDoor.Sectors[0] == sectorId ? 0 : 1] = newSectorId;
+                }
+            }
+
+            var door = new DungeonDoor(doorCandidate.info.Room, doorCandidate.info.Hallway, new int[] { sectorId, newSectorId});
             Doors.Add(door);
 
             return door;

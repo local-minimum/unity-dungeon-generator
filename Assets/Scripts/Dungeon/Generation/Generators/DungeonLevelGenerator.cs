@@ -73,6 +73,7 @@ public class DungeonLevelGenerator : MonoBehaviour
             var door = puzzleGenerator.AddDoor();
             if (door == null) break;
         }
+        DungeonGrid.Doors = puzzleGenerator.Doors;
 
         DebugPlaceHallways(hallwayGenerator);
 
