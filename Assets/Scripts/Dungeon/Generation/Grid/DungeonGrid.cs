@@ -25,6 +25,6 @@ public class DungeonGrid
     public bool Accessible(Vector2Int coordinates, EntityType entity) =>
         Dungeon.InBounds(coordinates) 
         && Dungeon.Accessible(coordinates)
-        && !Doors.Any(door => door.Locked && door.Coordinates == coordinates);
+        && !Doors.Any(door => door.Closed && door.Coordinates == coordinates);
     
 }

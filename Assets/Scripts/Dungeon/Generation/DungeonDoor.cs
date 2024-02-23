@@ -8,9 +8,11 @@ public class DungeonDoor
     public readonly DungeonRoom Room;
     public readonly DungeonHallway Hallway;
     public int[] Sectors;
-    public bool Locked {  get; private set; }
+    public bool Unlocked { get; set; }
+    public bool Closed {  get; set; }
 
     public Vector2Int Coordinates => Hallway.MyHallStart(Room);
+    public Vector2Int DirectionFromRoom => Hallway.MyHallStart(Room) - Hallway.MyRoomExit(Room);
 
     public DungeonDoor(DungeonRoom room, DungeonHallway hallway, int[] sectors)
     {
@@ -18,6 +20,7 @@ public class DungeonDoor
         Hallway = hallway;
         
         Sectors = sectors;
-        Locked = true;
+        Closed = true;
+        Unlocked = true;
     }
 }

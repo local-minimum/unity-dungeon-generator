@@ -18,7 +18,7 @@ public class DungeonLevelGenerator : MonoBehaviour
     GameObject debugWallPrefab;
 
     [SerializeField]
-    GameObject debugDoorPrefab;
+    AbstractDoorController debugDoorPrefab;
 
     [SerializeField]
     Transform generatedLevel;
@@ -131,7 +131,9 @@ public class DungeonLevelGenerator : MonoBehaviour
         foreach (var doorInfo in puzzleGenerator.Doors)
         {
             var door = Instantiate(debugDoorPrefab, generatedLevel);
+            door.dungeonDoor = doorInfo;
             door.transform.position = DungeonGrid.LocalWorldPosition(doorInfo.Coordinates);
+            door.transform.rotation = doorInfo.DirectionFromRoom.AsQuaternion();
             door.name = $"Door connecting sector {doorInfo.Sectors[0]} <=> {doorInfo.Sectors[1]}";
         }
     }

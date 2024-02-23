@@ -203,7 +203,7 @@ MonoBehaviour:
   seed: 1234
   debugFloorPrefab: {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
   debugWallPrefab: {fileID: 119448252790878994, guid: a727263e769661f488fe51b2e44547a8, type: 3}
-  debugDoorPrefab: {fileID: 7353155213506528873, guid: 0c93cf663e120cd4a8d9fe8c14f47133, type: 3}
+  debugDoorPrefab: {fileID: 1892188136696872692, guid: 0c93cf663e120cd4a8d9fe8c14f47133, type: 3}
   generatedLevel: {fileID: 303964769}
   PlayerController: {fileID: 836635394}
 --- !u!4 &659351219

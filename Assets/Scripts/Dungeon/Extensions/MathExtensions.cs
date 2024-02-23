@@ -49,6 +49,8 @@ namespace ProcDungeon
             return direction;
         }
 
+        public static Quaternion AsQuaternion(this Vector2Int direction) => Quaternion.LookRotation(new Vector3(direction.x, 0, direction.y));
+
         public static bool IsUnitVector(this Vector2Int vector) => 
             Mathf.Abs(vector.x) + Mathf.Abs(vector.y) == 1;
 

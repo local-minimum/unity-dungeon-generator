@@ -27,7 +27,8 @@ namespace ProcDungeon {
                 pt, 
                 direction, 
                 offset + Vector3.up * elevation, 
-                Quaternion.LookRotation(new Vector3(direction.x, 0, direction.y))
+                direction.AsQuaternion()
+                //Quaternion.LookRotation(new Vector3(direction.x, 0, direction.y))
                 );
         }
     }
