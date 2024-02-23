@@ -132,9 +132,11 @@ namespace ProcDungeon {
             if (candidate.HubSeparation < 4)
             {
                 room = candidates
-                    .Where(c => c.HubSeparation <= candidate.HubSeparation && c.HubSeparation > 1)
+                    .Where(c => c.HubSeparation <= candidate.HubSeparation && c.HubSeparation > 0)
                     .OrderBy(_ => Random.value)
                     .FirstOrDefault();
+
+
                 return ChooseStartPosition(room, dungeonGridLayer);
             }
 
@@ -143,7 +145,15 @@ namespace ProcDungeon {
                 .OrderBy(_ => Random.value)
                 .FirstOrDefault();
 
-            return ChooseStartPosition (room, dungeonGridLayer);    
+            if ( room == null )
+            {
+                Debug.LogError(
+                    $"Illogical fail to find start position from {candidates.Count} candidates based on {candidate} with separation {candidate.HubSeparation}"
+                );
+                return ChooseStartPosition(candidate, dungeonGridLayer);
+            }
+
+            return ChooseStartPosition(room, dungeonGridLayer);    
         }
     }
 }
