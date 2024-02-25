@@ -68,11 +68,8 @@ public class DungeonLevelGenerator : MonoBehaviour
         var spawnLookDirection = SpawnLookDirection(spawnPosition, spawnRoom);
 
         var puzzleGenerator = new PuzzleGenerator(roomGenerator, spawnRoom, spawnPosition);
-        for (int i = 0; i<Random.Range(2, 4); i++)
-        {
-            var door = puzzleGenerator.AddDoor();
-            if (door == null) break;
-        }
+        var nDoors = puzzleGenerator.AddDoors(Random.Range(2, 4));
+        Debug.Log($"Added {nDoors} doors to level");
         DungeonGrid.Doors = puzzleGenerator.Doors;
 
         DebugPlaceHallways(hallwayGenerator);

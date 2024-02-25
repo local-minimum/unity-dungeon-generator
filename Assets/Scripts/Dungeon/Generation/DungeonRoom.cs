@@ -26,6 +26,20 @@ namespace ProcDungeon
         private List<Vector2Int> _Interior = new List<Vector2Int>();
         public List<Vector2Int> Interior => _Interior;
 
+        public IEnumerable<Vector2Int> Tiles
+        {
+            get
+            {
+                foreach (var tile in _Interior) { 
+                    yield return tile;
+                }
+                foreach (var tile in _Perimeter)
+                {
+                    yield return tile;
+                }
+            }
+        }
+
         public int Size => _Perimeter.Count + _Interior.Count;
 
         public bool IsTerminus => Exits.Count(hall => hall.OtherRoom(this) != null) < 2;
@@ -237,6 +251,15 @@ namespace ProcDungeon
             foreach (var hall in Exits)
             {
                 yield return hall.MyRoomExit(this) - position;
+            }
+        }
+
+        public Vector2Int RandomTile
+        {
+            get
+            {
+                var tiles = Tiles.ToList();
+                return tiles[Random.Range(0, tiles.Count)];
             }
         }
     }
