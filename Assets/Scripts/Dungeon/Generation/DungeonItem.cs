@@ -6,8 +6,9 @@ namespace ProcDungeon
 {
     public abstract class DungeonItem
     {
+        public string Id;
+        public string Name;
         public Vector2Int SpawnPosition { get; protected set; }
-        public Vector2Int Location;
-       
+        public Vector2Int Coordinates;       
     }
 }

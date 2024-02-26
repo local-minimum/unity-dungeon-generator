@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ProcDungeon
+namespace ProcDungeon.World
 {
     
     public class SlidingDoorController : AbstractDoorController
@@ -52,14 +52,17 @@ namespace ProcDungeon
             dungeonDoor.Closed = true;
         }
 
-        public override void Toggle()
+        public override bool Toggle()
         {
             if (_doorState == DoorState.Closed) { 
                 Open();
+                return true;
             } else if (_doorState == DoorState.Opened)
             {
                 Close();
+                return false;
             }
+            return false;
         }
 
         private void Update()

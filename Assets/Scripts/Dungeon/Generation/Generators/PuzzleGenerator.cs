@@ -142,7 +142,10 @@ namespace ProcDungeon
             for (int i = 0; i < nDoors; i++)
             {
                 var door = AddDoor();
+
                 if (door == null) break;
+
+                door.Unlocked = !locked;
 
             }
 

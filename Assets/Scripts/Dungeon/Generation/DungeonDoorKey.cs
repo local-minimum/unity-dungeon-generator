@@ -13,8 +13,10 @@ namespace ProcDungeon
         {
             Door = door;
             SpawnPosition = spawn;
-            Location = spawn;
+            Coordinates = spawn;
             SpawnSector = spawnSector;
+            Name = "key";
+            Id = $"Specific Key to {door}";
         }
 
         override public string ToString() => $"<Key for: {Door}; Spawn: {SpawnSector} / {SpawnPosition}>";

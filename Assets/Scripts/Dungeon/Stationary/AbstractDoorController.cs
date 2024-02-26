@@ -2,13 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ProcDungeon
+namespace ProcDungeon.World
 {
     public abstract class AbstractDoorController : MonoBehaviour
     {
         abstract public void Open();
         public abstract void Close();
-        public abstract void Toggle();
+
+        /** Returns open = true */
+        public abstract bool Toggle();
 
         [HideInInspector]
         public DungeonDoor dungeonDoor;

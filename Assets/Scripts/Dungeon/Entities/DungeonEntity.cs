@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ProcDungeon
+namespace ProcDungeon.World
 {
     public enum EntityType { Unknown, Player, NPC, Enemy };
 

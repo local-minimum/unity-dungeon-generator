@@ -4,7 +4,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace ProcDungeon {
+namespace ProcDungeon.World 
+{
     public class PlayerController : DungeonEntity
     {
         public new EntityType EntityType => EntityType.Player;

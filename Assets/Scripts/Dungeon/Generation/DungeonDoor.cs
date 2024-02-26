@@ -40,6 +40,5 @@ namespace ProcDungeon
         public override string ToString() => 
             $"<Door at {Coordinates} ({Sectors[0]}<->{Sectors[1]})>";
         
-
     }
 }

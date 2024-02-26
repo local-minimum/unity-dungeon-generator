@@ -79,7 +79,7 @@ namespace ProcDungeon
 
         const string DISTANCEENCODING = "0123456789ABCDEFGH*";
 
-        public string ToString()
+        public override string ToString()
         {
             string output = $"Distance Grid (Max distance {MaxDistance}):\n";
             int lastEncodingIndex = DISTANCEENCODING.Length - 1;
