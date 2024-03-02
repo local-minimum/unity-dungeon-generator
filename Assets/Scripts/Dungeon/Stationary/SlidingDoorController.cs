@@ -37,16 +37,17 @@ namespace ProcDungeon.World
             closedPosition = _doorTransform.position;
         }
 
+        
         override public void Open()
         {
-            if (_doorState != DoorState.Closed) return;
+            if (_doorState != DoorState.Closed || !WithinActionDistance) return;
             slideStartTime = Time.timeSinceLevelLoad;
             _doorState = DoorState.Opening;
         }
 
         override public void Close()
         {
-            if (_doorState != DoorState.Opened) return;
+            if (_doorState != DoorState.Opened || !WithinActionDistance) return;
             slideStartTime = Time.timeSinceLevelLoad;
             _doorState = DoorState.Closing;
             dungeonDoor.Closed = true;
@@ -54,6 +55,8 @@ namespace ProcDungeon.World
 
         public override bool Toggle()
         {
+            if (!WithinActionDistance) return false;
+
             if (_doorState == DoorState.Closed) { 
                 Open();
                 return true;

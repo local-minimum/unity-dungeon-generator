@@ -15,5 +15,7 @@ namespace ProcDungeon.World
         [HideInInspector]
         public DungeonDoor dungeonDoor;
 
+        public bool WithinActionDistance => dungeonDoor.Coordinates.ChebyshevDistance(PlayerController.Instance.Coordinates) < 2;
+
     }
 }

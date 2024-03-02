@@ -8,6 +8,26 @@ namespace ProcDungeon.World
 {
     public class PlayerController : DungeonEntity
     {
+        public static PlayerController Instance { get; private set; }
+
+        private void Awake()
+        {
+            if (Instance == null) { 
+                Instance = this;
+            } else if (Instance != this)
+            {
+                Destroy(gameObject);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+        }
+
         public new EntityType EntityType => EntityType.Player;
 
         public DungeonGrid DungeonGrid {  get; set; }

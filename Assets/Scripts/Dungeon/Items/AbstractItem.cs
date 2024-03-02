@@ -10,7 +10,8 @@ namespace ProcDungeon.World
         public DungeonItem Item { get; set; }
 
 
-        virtual protected bool CanPickup() => true;
+        virtual protected bool CanPickup() => Item.Coordinates.ChebyshevDistance(PlayerController.Instance.Coordinates) < 2;
+
         virtual protected void OnHover() { }
         virtual protected void OnStopHover() { }
 
