@@ -14,15 +14,12 @@ namespace ProcDungeon.World
         public Teleporter PairedTeleporter { get; set; }
 
         [SerializeField] MeshRenderer PortalRenderer;
-        [SerializeField] int PortalMaterialIndex;
         [SerializeField, Range(64, 2048)] int CameraTextureHeight = 512;
         [SerializeField, Range(64, 2048)] int CameraTextureWidth = 256;
         [SerializeField] Camera ExitViewCamera;
-        [SerializeField] Shader shader;
-        [SerializeField] string TextureName = "_MainTex";
 
         RenderTexture renderTexture;
-        Material disabledMaterial;
+        Material exitViewMaterial;
 
         private void Start()
         {
@@ -30,28 +27,35 @@ namespace ProcDungeon.World
             renderTexture.Create();
             renderTexture.name = "Exit View Texture";            
 
-            disabledMaterial = PortalRenderer.materials[PortalMaterialIndex];
-            ExitViewCamera.targetTexture = renderTexture;    
+            ExitViewCamera.targetTexture = renderTexture;
+
+            exitViewMaterial = PortalRenderer.material;
+            exitViewMaterial.mainTexture = renderTexture;
+            exitViewMaterial.color = Color.white;
+
+            PortalRenderer.sharedMaterial = exitViewMaterial;
+        }
+
+        void Update()
+        {
+            // You can only do this in Built-in, not URP/HDRP but this will guarantee that the texture has been rendered before you use it
+            ExitViewCamera.Render();
         }
 
         public void ShowView()
         {
-            var material = new Material(shader);
-            material.name = "Exit View Material";
-            material.SetTexture(TextureName, renderTexture);
-                        
-            Debug.Log($"Using {material}");
-            PortalRenderer.SetMaterials(PortalRenderer.materials.Select((m, idx) => idx == PortalMaterialIndex ? material : m).ToList());            
+            PortalRenderer.enabled = true;            
         }
 
         public void HideView()
         {
-            PortalRenderer.SetMaterials(PortalRenderer.materials.Select((m, idx) => idx == PortalMaterialIndex ? disabledMaterial : m).ToList());
+            PortalRenderer.enabled = false;
         }
 
         private void OnDestroy()
         {
             renderTexture.Release();
+            Destroy(exitViewMaterial);
         }
     }
 }
