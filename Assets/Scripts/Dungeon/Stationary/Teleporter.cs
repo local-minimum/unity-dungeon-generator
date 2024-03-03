@@ -25,21 +25,22 @@ namespace ProcDungeon.World
         {
             renderTexture = new RenderTexture(CameraTextureWidth, CameraTextureHeight, 16);
             renderTexture.Create();
-            renderTexture.name = "Exit View Texture";            
+            renderTexture.name = "Exit View Texture";
 
-            ExitViewCamera.targetTexture = renderTexture;
+            PairedTeleporter.ExitViewCamera.targetTexture = renderTexture;
 
             exitViewMaterial = PortalRenderer.material;
             exitViewMaterial.mainTexture = renderTexture;
             exitViewMaterial.color = Color.white;
 
             PortalRenderer.sharedMaterial = exitViewMaterial;
+
         }
 
         void Update()
         {
             // You can only do this in Built-in, not URP/HDRP but this will guarantee that the texture has been rendered before you use it
-            ExitViewCamera.Render();
+            PairedTeleporter.ExitViewCamera.Render();
         }
 
         public void ShowView()
