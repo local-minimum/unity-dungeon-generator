@@ -199,11 +199,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &629617143 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6087846274010985868, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
-  m_PrefabInstance: {fileID: 836635392}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &659351217
 GameObject:
   m_ObjectHideFlags: 0
@@ -443,6 +438,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: eb1f3d83-2e5a-4f3d-bd94-9e49e7fbe700
     m_ActionName: DungeonNavigation/Rotate CounterClockWise[/Keyboard/q,/Keyboard/home]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 836635394}
+        m_TargetAssemblyTypeName: ProcDungeon.World.PlayerController, Assembly-CSharp
+        m_MethodName: OnCreateTeleporter
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 611543a0-ed5d-488e-bddf-259b7d5aa906
+    m_ActionName: DungeonNavigation/ConstructTeleporter[/Keyboard/t]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: Keyboard
   m_DefaultActionMap: DungeonNavigation
@@ -655,10 +666,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 6087846274010985868, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 836635395}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
 --- !u!4 &836635393 stripped
 Transform:
@@ -670,22 +678,10 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3790567743967374861, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
   m_PrefabInstance: {fileID: 836635392}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 629617143}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 94b366a97bdb64e4b8e405cfc276fb7a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &836635395
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 629617143}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5055e35e681b5f44fb3d9073a48985a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!20 &1444606810 stripped

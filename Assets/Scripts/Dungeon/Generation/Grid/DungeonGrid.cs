@@ -10,6 +10,7 @@ public class DungeonGrid
     public readonly DungeonGridLayer Dungeon;
     public readonly DungeonLevelSetting LevelSetting;
     public List<DungeonDoor> Doors { get; set; } = new List<DungeonDoor>();
+    public List<Teleporter> Teleporters { get; set; } = new List<Teleporter>();
     public DungeonRoom Hub { get; set; }
 
     public DungeonGrid(DungeonGridLayer dungeon, DungeonLevelSetting levelSetting)
@@ -30,5 +31,9 @@ public class DungeonGrid
         || Dungeon.InBounds(coordinates) 
         && Dungeon.Accessible(coordinates)
         && !Doors.Any(door => door.Closed && door.Coordinates == coordinates);
-    
+
+    public bool ValidTeleporterPosition(Vector2Int coordinates, Vector2Int direction) =>
+        !Teleporters.Any(teleporter => teleporter.Coordinates == coordinates)
+        && Accessible(coordinates, EntityType.Player)
+        && (!Dungeon.InBounds(coordinates + direction) || Dungeon.IsEmpty(coordinates + direction));
 }

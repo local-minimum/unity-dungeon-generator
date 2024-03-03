@@ -67,6 +67,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ConstructTeleporter",
+                    "type": "Button",
+                    "id": "611543a0-ed5d-488e-bddf-259b7d5aa906",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -210,6 +219,17 @@
                     "processors": "",
                     "groups": "Keyboard",
                     "action": "Rotate CounterClockWise",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "492e4ae9-382f-48d8-a34b-c41a4f15ee58",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "ConstructTeleporter",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

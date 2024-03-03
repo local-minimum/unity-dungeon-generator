@@ -8,6 +8,7 @@ namespace ProcDungeon.World
     {
         public bool HubSide { get; set; }
         public Vector2Int Coordinates { get; set; }
+        public Vector2Int ExitDirection { get; set; }
 
         public Teleporter PairedTeleporter { get; set; }
     }

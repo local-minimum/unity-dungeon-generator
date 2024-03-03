@@ -15,7 +15,38 @@ namespace ProcDungeon.World
         List<Teleporter> teleporters = new List<Teleporter>();
         public Vector2Int Fire { get; private set; }
 
-        public bool AddTeleporter(out Teleporter teleporter)
+        public bool AddTeleporterPair(Vector2Int levelCoordinates, Vector2Int lookDirection, out Teleporter levelTeleporter)
+        {
+            var dungeonGrid = DungeonLevelGenerator.instance.DungeonGrid;
+            if (!dungeonGrid.ValidTeleporterPosition(levelCoordinates, lookDirection))
+            {
+                levelTeleporter = null;
+                return false;
+            }
+
+            if (!AddTeleporter(out var hubTeleporter))
+            {
+                levelTeleporter = null;
+                return false;
+            }
+
+            levelTeleporter = Instantiate(TeleporterPrefab);
+            levelTeleporter.transform.position = dungeonGrid.LocalWorldPosition(levelCoordinates);
+            levelTeleporter.transform.rotation = dungeonGrid.LocalWorldRotation(lookDirection);
+
+            levelTeleporter.HubSide = false;
+            levelTeleporter.Coordinates = levelCoordinates;
+            levelTeleporter.ExitDirection = lookDirection * -1; 
+
+            hubTeleporter.PairedTeleporter = levelTeleporter;
+            levelTeleporter.PairedTeleporter = hubTeleporter;
+
+            dungeonGrid.Teleporters.Add(levelTeleporter);
+
+            return true;
+        }
+
+        bool AddTeleporter(out Teleporter teleporter)
         {
             if (Teleporters < teleporterLocations.Count)
             {
@@ -36,19 +67,24 @@ namespace ProcDungeon.World
                     teleporters[slot] = teleporter;
                 }
 
+                var direction = (teleporterLocations[slot] - Fire).MainDirection();
+
                 var dungeonGrid = DungeonLevelGenerator.instance.DungeonGrid;
                 teleporter.transform.position = dungeonGrid.LocalWorldPosition(teleporterLocations[slot]);
-                teleporter.transform.rotation = dungeonGrid.LocalWorldRotation((teleporterLocations[slot] - Fire).MainDirection());
+                teleporter.transform.rotation = dungeonGrid.LocalWorldRotation(direction);
 
                 teleporter.HubSide = true;
                 teleporter.Coordinates = teleporterLocations[slot];
+                teleporter.ExitDirection = direction * -1;
+
+                dungeonGrid.Teleporters.Add(teleporter);
 
                 return true;
             }
 
             teleporter = null;
             return false;
-        }
+        }        
 
         public bool DestroyTeleporter(Teleporter teleporter)
         {
@@ -56,7 +92,14 @@ namespace ProcDungeon.World
 
             if (teleporters.Contains(teleporter))
             {
-                teleporters[teleporters.IndexOf(teleporter)] = null;   
+                teleporters[teleporters.IndexOf(teleporter)] = null;
+
+                var dungeonGrid = DungeonLevelGenerator.instance.DungeonGrid;
+
+                dungeonGrid.Teleporters.Remove(teleporter);
+                dungeonGrid.Teleporters.Remove(teleporter.PairedTeleporter);
+
+                Destroy(teleporter.PairedTeleporter.gameObject);
                 Destroy(teleporter.gameObject);
                 return true;
             }
@@ -85,7 +128,5 @@ namespace ProcDungeon.World
                 }
             }
         }
-
-        public Vector2Int GetTeleporterLocation(int idx) => teleporterLocations[idx];
     }
 }
