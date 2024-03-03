@@ -41,6 +41,9 @@ namespace ProcDungeon.World
             hubTeleporter.PairedTeleporter = levelTeleporter;
             levelTeleporter.PairedTeleporter = hubTeleporter;
 
+            hubTeleporter.ShowView();
+            levelTeleporter.ShowView();
+
             dungeonGrid.Teleporters.Add(levelTeleporter);
 
             return true;
@@ -58,6 +61,7 @@ namespace ProcDungeon.World
                 }
 
                 teleporter = Instantiate(TeleporterPrefab, transform);
+                teleporter.name = $"Teleporter Slot #{slot}";
 
                 if (add)
                 {

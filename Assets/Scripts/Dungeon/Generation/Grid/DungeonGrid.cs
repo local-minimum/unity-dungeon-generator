@@ -33,7 +33,8 @@ public class DungeonGrid
         && !Doors.Any(door => door.Closed && door.Coordinates == coordinates);
 
     public bool ValidTeleporterPosition(Vector2Int coordinates, Vector2Int direction) =>
-        !Teleporters.Any(teleporter => teleporter.Coordinates == coordinates)
+        !(Hub != null && Hub.Contains(coordinates))
+        && !Teleporters.Any(teleporter => teleporter.Coordinates == coordinates)
         && Accessible(coordinates, EntityType.Player)
         && (!Dungeon.InBounds(coordinates + direction) || Dungeon.IsEmpty(coordinates + direction));
 }
