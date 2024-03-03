@@ -136,7 +136,7 @@ namespace ProcDungeon
             {
                 if (perimeterPt != prevPerimeterPt)
                 {
-                    _Perimeter.Add(perimeterPt);
+                    if (!_Perimeter.Contains(perimeterPt)) _Perimeter.Add(perimeterPt);
                     prevPerimeterPt = perimeterPt;
                 }
 

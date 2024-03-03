@@ -154,6 +154,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 659351219}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &439958712
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 439958714}
+  - component: {fileID: 439958713}
+  m_Layer: 0
+  m_Name: Hub
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &439958713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 439958712}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 45c91eba7c11afb4cb2e86df6a4c49cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  TeleporterPrefab: {fileID: 1744939715928604760, guid: b9357d0c769bdd54780639f203739502, type: 3}
+--- !u!4 &439958714
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 439958712}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -34.13519, y: 1.9000131, z: -44.428333}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &629617143 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6087846274010985868, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
@@ -655,3 +700,4 @@ SceneRoots:
   - {fileID: 705507995}
   - {fileID: 659351219}
   - {fileID: 819838717}
+  - {fileID: 439958714}

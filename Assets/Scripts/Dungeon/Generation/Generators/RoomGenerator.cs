@@ -246,5 +246,19 @@ namespace ProcDungeon
                 roomIdx++;
             }
         }
+
+        public DungeonRoom CreateHub(int roomSize = 5)
+        {
+            int anchor = -10 - roomSize;
+
+            if (roomSize < 0) throw new System.ArgumentException("Room size must be positive");
+            if (roomSize % 2 == 0) throw new System.ArgumentException("Room size must not be even");
+
+            return new DungeonRoom(-1, new List<RectInt>() {
+                new RectInt(anchor, anchor, roomSize, roomSize),
+                new RectInt(anchor - 1, anchor + roomSize / 2, roomSize + 2, 1),
+                new RectInt(anchor + roomSize / 2, anchor - 1, 1, roomSize + 2),
+            }); ;
+        }
     }
 }

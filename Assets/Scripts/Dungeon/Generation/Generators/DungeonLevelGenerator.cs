@@ -87,6 +87,10 @@ namespace ProcDungeon
 
             SpawnPlayer(spawnPosition, spawnLookDirection, spawnRoom);
 
+            DungeonGrid.Hub = roomGenerator.CreateHub();
+            DebugPlaceRoom(DungeonGrid.Hub, hallwayGenerator);
+            DungeonHub.instance.Room = DungeonGrid.Hub;
+
             Debug.Log($"Done level generation (Seed {seed})");
 
         }
@@ -182,45 +186,51 @@ namespace ProcDungeon
         {
             foreach (var room in roomGenerator.Rooms)
             {
-                foreach (var tileCoordinates in room.Perimeter)
-                {
-                    var floor = Instantiate(debugFloorPrefab, generatedLevel);
-                    floor.transform.position = DungeonGrid.LocalWorldPosition(tileCoordinates);
-                    floor.name = $"Room {room.RoomId} Perimeter {tileCoordinates}";
+                DebugPlaceRoom(room, hallwayGenerator);
+            }
+        }
 
-                    foreach (var direction in MathExtensions.CardinalDirections)
+        void DebugPlaceRoom(DungeonRoom room, HallwayGenerator hallwayGenerator)
+        {
+            foreach (var tileCoordinates in room.Perimeter)
+            {
+                var floor = Instantiate(debugFloorPrefab, generatedLevel);
+                floor.transform.position = DungeonGrid.LocalWorldPosition(tileCoordinates);
+                floor.name = $"Room {room.RoomId} Perimeter {tileCoordinates}";
+
+                foreach (var direction in MathExtensions.CardinalDirections)
+                {
+                    var perimeterNeighbour = tileCoordinates + direction;
+                    if (room.Contains(perimeterNeighbour)) continue;
+
+                    bool isInHall = false;
+                    foreach (var hall in hallwayGenerator.Hallways)
                     {
-                        var perimeterNeighbour = tileCoordinates + direction;
-                        if (room.Contains(perimeterNeighbour)) continue;
-
-                        bool isInHall = false;
-                        foreach (var hall in hallwayGenerator.Hallways)
+                        if (hall.IsHallExit(tileCoordinates) && hall.Contains(perimeterNeighbour))
                         {
-                            if (hall.IsHallExit(tileCoordinates) && hall.Contains(perimeterNeighbour))
-                            {
-                                isInHall = true;
-                                break;
-                            }
+                            isInHall = true;
+                            break;
                         }
-
-                        if (isInHall) continue;
-
-                        var wallPosition = WallPosition.From(tileCoordinates, direction, settings.tileSize, settings.tileSize * 0.5f);
-                        var wall = Instantiate(debugWallPrefab, generatedLevel);
-                        wall.transform.position = wallPosition.Position;
-                        wall.transform.rotation = wallPosition.Rotation;
-                        wall.name = $"Room {room.RoomId} Wall {wallPosition.Coordinates} Facing {wallPosition.Direction}";
-
                     }
-                }
 
-                foreach (var tileCoordinates in room.Interior)
-                {
-                    var floor = Instantiate(debugFloorPrefab, generatedLevel);
-                    floor.transform.position = new Vector3(tileCoordinates.x * settings.tileSize, 0, tileCoordinates.y * settings.tileSize);
-                    floor.name = $"Room {room.RoomId} Interior {tileCoordinates}";
+                    if (isInHall) continue;
+
+                    var wallPosition = WallPosition.From(tileCoordinates, direction, settings.tileSize, settings.tileSize * 0.5f);
+                    var wall = Instantiate(debugWallPrefab, generatedLevel);
+                    wall.transform.position = wallPosition.Position;
+                    wall.transform.rotation = wallPosition.Rotation;
+                    wall.name = $"Room {room.RoomId} Wall {wallPosition.Coordinates} Facing {wallPosition.Direction}";
+
                 }
             }
+
+            foreach (var tileCoordinates in room.Interior)
+            {
+                var floor = Instantiate(debugFloorPrefab, generatedLevel);
+                floor.transform.position = new Vector3(tileCoordinates.x * settings.tileSize, 0, tileCoordinates.y * settings.tileSize);
+                floor.name = $"Room {room.RoomId} Interior {tileCoordinates}";
+            }
+
         }
     }
 }

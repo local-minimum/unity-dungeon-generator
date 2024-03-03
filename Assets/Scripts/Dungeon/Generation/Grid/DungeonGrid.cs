@@ -10,6 +10,8 @@ public class DungeonGrid
     public readonly DungeonGridLayer Dungeon;
     public readonly DungeonLevelSetting LevelSetting;
     public List<DungeonDoor> Doors { get; set; } = new List<DungeonDoor>();
+    public DungeonRoom Hub { get; set; }
+
     public DungeonGrid(DungeonGridLayer dungeon, DungeonLevelSetting levelSetting)
     {
         Dungeon = dungeon;
@@ -24,7 +26,8 @@ public class DungeonGrid
 
     // TODO: Add logic when we have occupancy rules
     public bool Accessible(Vector2Int coordinates, EntityType entity) =>
-        Dungeon.InBounds(coordinates) 
+        Hub != null && Hub.Contains(coordinates) && Hub.Center != coordinates
+        || Dungeon.InBounds(coordinates) 
         && Dungeon.Accessible(coordinates)
         && !Doors.Any(door => door.Closed && door.Coordinates == coordinates);
     
