@@ -8,12 +8,27 @@ namespace ProcDungeon.World
 {
     public class DungeonHub : Singleton<DungeonHub>
     {
+        public class TeleporterCoordinates
+        {
+            public Vector2Int HubCoordinates;
+            public Vector2Int LevelCoordinates;
+            public TeleporterCoordinates(Teleporter t) {
+                HubCoordinates = t.Coordinates;
+                LevelCoordinates = t.PairedTeleporter.Coordinates;
+            }
+        }
+
         public Teleporter TeleporterPrefab;
+        public SavePlace SavePrefab;
 
         private DungeonRoom room;
         List<Vector2Int> teleporterLocations = new List<Vector2Int>();
         List<Teleporter> teleporters = new List<Teleporter>();
-        public Vector2Int Fire { get; private set; }
+        public Vector2Int Center { get; private set; }
+
+        SavePlace savePlace;
+
+        public IEnumerable<TeleporterCoordinates> TeleporterPlacements => teleporters.Select(t => t == null ? null : new TeleporterCoordinates(t));            
 
         public bool AddTeleporterPair(Vector2Int levelCoordinates, Vector2Int lookDirection, out Teleporter levelTeleporter)
         {
@@ -71,7 +86,7 @@ namespace ProcDungeon.World
                     teleporters[slot] = teleporter;
                 }
 
-                var direction = (teleporterLocations[slot] - Fire).MainDirection();
+                var direction = (teleporterLocations[slot] - Center).MainDirection();
 
                 var dungeonGrid = DungeonLevelGenerator.instance.DungeonGrid;
                 teleporter.transform.position = dungeonGrid.LocalWorldPosition(teleporterLocations[slot]);
@@ -124,12 +139,15 @@ namespace ProcDungeon.World
                 teleporterLocations.Add(new Vector2Int(center.x, bbox.min.y));
                 teleporterLocations.Add(new Vector2Int(center.x, bbox.max.y - 1));
 
-                Fire = center;
+                Center = center;
 
-                foreach (var location in teleporterLocations)
+                if (savePlace == null)
                 {
-                    Debug.Log(location);
+                    savePlace = Instantiate(SavePrefab, transform);
                 }
+
+                var dungeonGrid = DungeonLevelGenerator.instance.DungeonGrid;                
+                savePlace.transform.position = dungeonGrid.LocalWorldPosition(center);
             }
         }
     }

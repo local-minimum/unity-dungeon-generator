@@ -184,6 +184,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TeleporterPrefab: {fileID: 1744939715928604760, guid: b9357d0c769bdd54780639f203739502, type: 3}
+  SavePrefab: {fileID: 3244438350902283484, guid: 87750186650b959419ec74715d8aad85, type: 3}
 --- !u!4 &439958714
 Transform:
   m_ObjectHideFlags: 0
@@ -193,7 +194,7 @@ Transform:
   m_GameObject: {fileID: 439958712}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -34.13519, y: 1.9000131, z: -44.428333}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

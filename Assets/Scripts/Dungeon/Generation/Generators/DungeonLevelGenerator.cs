@@ -12,6 +12,7 @@ namespace ProcDungeon
 
         [SerializeField]
         int seed = 1234;
+        public int Seed => seed;
 
         [SerializeField]
         GameObject debugFloorPrefab;

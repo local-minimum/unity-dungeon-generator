@@ -9,6 +9,7 @@ namespace ProcDungeon.World
     public class Inventory : Singleton<Inventory>
     {
         List<AbstractItem> inventory = new List<AbstractItem>();
+        public IEnumerable<DungeonItem> Items => inventory.Select(i => i.Item);
 
         public bool PickUp(AbstractItem item)
         {
