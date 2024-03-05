@@ -1,3 +1,4 @@
+using ProcDungeon.UI;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -87,6 +88,8 @@ namespace ProcDungeon.World
                     }
                 }
             }
+
+            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
         }
 
         public void OnMoveBackward(InputAction.CallbackContext context)
@@ -108,6 +111,8 @@ namespace ProcDungeon.World
                     }
                 }
             }
+
+            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
         }
 
         public void OnStrafeLeft(InputAction.CallbackContext context)
@@ -128,6 +133,9 @@ namespace ProcDungeon.World
                     }
                 }
             };
+
+            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
+
         }
 
         public void OnStrafeRight(InputAction.CallbackContext context)
@@ -149,6 +157,9 @@ namespace ProcDungeon.World
                 }
                 
             }
+
+            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
+
         }
 
         public void OnRotateCW(InputAction.CallbackContext context)
@@ -156,6 +167,8 @@ namespace ProcDungeon.World
             if (!canRecieveInput || !context.performed) return;
 
             Teleport(Coordinates, Direction.RotateCW());
+
+            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
         }
 
         public void OnRotateCCW(InputAction.CallbackContext context)
@@ -163,18 +176,42 @@ namespace ProcDungeon.World
             if (!canRecieveInput || !context.performed) return;
 
             Teleport(Coordinates, Direction.RotateCCW());
+
+            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
         }
 
-        public void OnCreateTeleporter(InputAction.CallbackContext context)
-        {
-            if (!canRecieveInput || !context.performed) return;
+        const string destroyTeleporterMessage = "Dismantle Teleporter";
 
-            if (DungeonHub.instance.AddTeleporterPair(Coordinates, Direction,  out var teleporter))
+        public void OnTeleporter(InputAction.CallbackContext context)
+        {
+            if (!canRecieveInput) return;
+
+            if (context.performed && DungeonHub.instance.AddTeleporterPair(Coordinates, Direction,  out var teleporter))
             {
                 teleporter.name = $"Level Teleporter {Coordinates}";
                 Debug.Log($"Added teleporter {teleporter}");
+            } else if (
+                context.performed 
+                && DungeonHub.instance.FacingTeleporter(Coordinates, Direction) 
+                && DungeonHub.instance.CanDestroyTeleporter(Coordinates)
+             )
+            {
+                var coordinates = Coordinates;
+
+                System.Action callback = () =>
+                {
+                    if (!DungeonHub.instance.DestroyTeleporter(coordinates))
+                    {
+                        Debug.Log("Can't destroy last teleporter");
+                    }
+
+                };
+
+                DelayedAction.instance.ShowMessage(destroyTeleporterMessage, callback, 1.5f);
             } else
             {
+                DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
+
                 Debug.Log("Invalid teleporter position");
             }
         }

@@ -28,6 +28,19 @@ namespace ProcDungeon.World
 
         SavePlace savePlace;
 
+        public bool FacingTeleporter(Vector2Int coordinates, Vector2Int direction)
+        {
+            var teleporter = TeleporterPairFromCoordinates(coordinates);
+
+            if (teleporter == null) { return false; }
+
+            if (teleporter.Coordinates == coordinates) {
+                return teleporter.ExitDirection * -1 == direction;
+            }
+
+            return teleporter.PairedTeleporter.ExitDirection * -1 == direction;
+        }
+
         public IEnumerable<TeleporterCoordinates> TeleporterPlacements => teleporters.Select(t => t == null ? null : new TeleporterCoordinates(t));            
 
         public bool AddTeleporterPair(Vector2Int levelCoordinates, Vector2Int lookDirection, out Teleporter levelTeleporter)
@@ -103,12 +116,34 @@ namespace ProcDungeon.World
 
             teleporter = null;
             return false;
-        }        
+        }
 
-        public bool DestroyTeleporter(Teleporter teleporter)
+        Teleporter TeleporterPairFromCoordinates(Vector2Int coordinates) =>
+            teleporters.FirstOrDefault(t => t != null && (t.Coordinates == coordinates || t.PairedTeleporter.Coordinates == coordinates));
+
+        public bool DestroyTeleporter(Vector2Int coordinates)
         {
-            if (Teleporters < 1) return false;
+            var teleporter = TeleporterPairFromCoordinates(coordinates);
+            if (CanDestroyTeleporter(teleporter, coordinates))
+            {
+                return DestroyTeleporter(teleporter);
+            }
+            return false;
+        }
 
+        public bool CanDestroyTeleporter(Vector2Int coordinates)
+        {
+            var teleporter = TeleporterPairFromCoordinates(coordinates);
+            return CanDestroyTeleporter(teleporter, coordinates);
+        }
+
+        bool CanDestroyTeleporter(Teleporter teleporter, Vector2Int coordinates)
+        {
+            return teleporter != null && (teleporter.PairedTeleporter.Coordinates == coordinates || Teleporters > 1);
+        }
+
+        bool DestroyTeleporter(Teleporter teleporter)
+        {                        
             if (teleporters.Contains(teleporter))
             {
                 teleporters[teleporters.IndexOf(teleporter)] = null;
