@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Linq;
 using UnityEngine.InputSystem;
 using ProcDungeon.World;
+using System.Collections.Generic;
 
 namespace ProcDungeon
 {
@@ -92,8 +93,39 @@ namespace ProcDungeon
             DebugPlaceRoom(DungeonGrid.Hub, hallwayGenerator);
             DungeonHub.instance.Room = DungeonGrid.Hub;
 
+
+            // Note that this must be after debug place things which create info because because
+            PrepareMap();
+
             Debug.Log($"Done level generation (Seed {seed})");
 
+        }
+
+        [SerializeField]
+        Transform GenerateMapRoot;
+
+        [SerializeField]
+        string VisibleMapLayer = "VisibleMap";
+
+        [SerializeField]
+        string InvisibleMapLayer = "InvisibleMap";
+
+
+        void PrepareMap()
+        {
+            var lookup = MapTilesCollection.instance;
+
+            foreach (var (coordinates, position) in DungeonGrid.GridPositions)
+            {
+                var groundId = position.GroundID;
+                var prefab = lookup.GetPrefab(groundId);
+                if (prefab == null) continue;
+
+                var floor = Instantiate(prefab, GenerateMapRoot);
+                floor.transform.position = DungeonGrid.LocalWorldPosition(coordinates, -0.2f);
+                floor.name = $"GroundMap {groundId} {coordinates}";
+                floor.layer =  LayerMask.NameToLayer(position.Seen ? VisibleMapLayer : InvisibleMapLayer);
+            }
         }
 
         private Vector2Int SpawnLookDirection(Vector2Int spawnPosition, DungeonRoom spawnRoom)
@@ -158,6 +190,8 @@ namespace ProcDungeon
                 door.transform.position = DungeonGrid.LocalWorldPosition(doorInfo.Coordinates);
                 door.transform.rotation = doorInfo.DirectionFromRoom.AsQuaternion();
                 door.name = $"Door connecting sector {doorInfo.Sectors[0]} <=> {doorInfo.Sectors[1]}";
+
+                DungeonGrid.GridPositions[doorInfo.Coordinates].SetFeature(GridMapFeature.Door);
             }
         }
 
@@ -165,13 +199,15 @@ namespace ProcDungeon
         {
             foreach (var hallway in hallwayGenerator.Hallways)
             {
-                foreach (var tileCoordinates in hallway.Hallway)
+                for (int i = 0, n=hallway.Hallway.Count; i<n; i++)                
                 {
+                    var tileCoordinates = hallway.Hallway[i];
                     var floor = Instantiate(debugFloorPrefab, generatedLevel);
                     floor.transform.position = DungeonGrid.LocalWorldPosition(tileCoordinates);
                     floor.name = $"Hallway {hallway.Id} Floor {tileCoordinates}";
 
-                }
+                    DungeonGrid.GridPositions.Add(tileCoordinates, new GridPosition(hallway.WallDirection(i)));
+                }                
 
                 foreach (var wallPosition in hallway.Walls(settings.tileSize, settings.tileSize * 0.5f))
                 {
@@ -199,6 +235,8 @@ namespace ProcDungeon
                 floor.transform.position = DungeonGrid.LocalWorldPosition(tileCoordinates);
                 floor.name = $"Room {room.RoomId} Perimeter {tileCoordinates}";
 
+                var directions = new List<Vector2Int>();
+
                 foreach (var direction in MathExtensions.CardinalDirections)
                 {
                     var perimeterNeighbour = tileCoordinates + direction;
@@ -216,12 +254,18 @@ namespace ProcDungeon
 
                     if (isInHall) continue;
 
+                    directions.Add(direction);
+
                     var wallPosition = WallPosition.From(tileCoordinates, direction, settings.tileSize, settings.tileSize * 0.5f);
                     var wall = Instantiate(debugWallPrefab, generatedLevel);
                     wall.transform.position = wallPosition.Position;
                     wall.transform.rotation = wallPosition.Rotation;
                     wall.name = $"Room {room.RoomId} Wall {wallPosition.Coordinates} Facing {wallPosition.Direction}";
 
+                }
+
+                if (tileCoordinates.x >= 0 && tileCoordinates.y >= 0) {
+                    DungeonGrid.GridPositions.Add(tileCoordinates, new GridPosition(directions));
                 }
             }
 
@@ -230,8 +274,11 @@ namespace ProcDungeon
                 var floor = Instantiate(debugFloorPrefab, generatedLevel);
                 floor.transform.position = new Vector3(tileCoordinates.x * settings.tileSize, 0, tileCoordinates.y * settings.tileSize);
                 floor.name = $"Room {room.RoomId} Interior {tileCoordinates}";
+                if (tileCoordinates.x >= 0 && tileCoordinates.y >= 0)
+                {
+                    DungeonGrid.GridPositions.Add(tileCoordinates, new GridPosition());
+                }
             }
-
         }
     }
 }

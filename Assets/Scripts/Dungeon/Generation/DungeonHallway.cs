@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace ProcDungeon
 {
@@ -39,28 +41,34 @@ namespace ProcDungeon
             SourceRoom == room && DestinationRoom == other
             || SourceRoom == other && DestinationRoom == room;
 
-        public IEnumerable<WallPosition> Walls(float scale, float elevation)
+        private List<List<Vector2Int>> WallDirections = new List<List<Vector2Int>>();
+
+        private void InitWallDirections()
         {
+            WallDirections.Clear();
+
             var currentDirection = Source - SourceExit;
 
-            for (int i = 0, n=Hallway.Count; i < n; ++i)
+            for (int i = 0, n = Hallway.Count; i < n; ++i)
             {
                 var pt = Hallway[i];
-                var directions = new List<Vector2Int> {
+                var candidateDirections = new List<Vector2Int> {
                     new Vector2Int(-currentDirection.y, currentDirection.x),
                     new Vector2Int(currentDirection.y, -currentDirection.x)
                 };
 
                 if (pt + currentDirection != DestinationExit)
                 {
-                    directions.Add(currentDirection);
+                    candidateDirections.Add(currentDirection);
                 }
 
-                foreach(var direction in directions)
+                var wallDirections = new List<Vector2Int>();
+
+                foreach (var direction in candidateDirections)
                 {
                     bool noWall = false;
                     var neigbour = pt + direction;
-                    for (int j=0; j<n; ++j)
+                    for (int j = 0; j < n; ++j)
                     {
                         if (Hallway[j] == neigbour)
                         {
@@ -71,12 +79,37 @@ namespace ProcDungeon
 
                     if (noWall) continue;
 
-                    yield return WallPosition.From(pt, direction, scale, elevation);
+                    wallDirections.Add(direction);
                 }
+
+                WallDirections.Add(wallDirections);
 
                 if (i + 1 < n)
                 {
                     currentDirection = Hallway[i + 1] - pt;
+                }
+
+            }
+        }
+
+
+
+        public IEnumerable<Vector2Int> WallDirection(int hallIndex)
+        {
+            if (Hallway.Count != WallDirections.Count) { InitWallDirections(); }
+            return WallDirections[hallIndex];
+        }
+
+        public IEnumerable<WallPosition> Walls(float scale, float elevation)
+        {
+            if (Hallway.Count != WallDirections.Count) { InitWallDirections(); }
+
+            for (int i = 0, n=Hallway.Count; i<n ; i++)
+            {
+                var pt = Hallway[i];
+                foreach (var direction in WallDirections[i])
+                {
+                    yield return WallPosition.From(pt, direction, scale, elevation);
                 }
             }
         }

@@ -13,6 +13,8 @@ public class DungeonGrid
     public List<Teleporter> Teleporters { get; set; } = new List<Teleporter>();
     public DungeonRoom Hub { get; set; }
 
+    public Dictionary<Vector2Int, GridPosition> GridPositions { get; set; } = new Dictionary<Vector2Int, GridPosition>();
+
     public DungeonGrid(DungeonGridLayer dungeon, DungeonLevelSetting levelSetting)
     {
         Dungeon = dungeon;
