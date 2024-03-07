@@ -151,7 +151,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.6509434, g: 0.6509434, b: 0.6509434, a: 1}
+  m_BackGroundColor: {r: 0.05490196, g: 0.050980393, b: 0.050980393, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -901,23 +901,24 @@ MonoBehaviour:
   - NWE
   - SWE
   - NSWE
-  tiles:
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  - {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
+  TilePrefab: {fileID: 5498870755295683595, guid: f217401f7875c774aac41be79920dee3, type: 3}
+  materals:
+  - {fileID: 2100000, guid: b5c3b5f9927b29f4aac74805855f791c, type: 2}
+  - {fileID: 2100000, guid: d826fe56bc955f543a7031ee41eca48e, type: 2}
+  - {fileID: 2100000, guid: 09b6997fcc4b81747b635187f380594f, type: 2}
+  - {fileID: 2100000, guid: 2f069ff7d79b1324ead91fab07e4289d, type: 2}
+  - {fileID: 2100000, guid: cebdacb351f3d624fbe69abdbdce8125, type: 2}
+  - {fileID: 2100000, guid: 34d0b18c851ef944c8f483054fc0b891, type: 2}
+  - {fileID: 2100000, guid: f320a2fa03774214c93e7b66ff526170, type: 2}
+  - {fileID: 2100000, guid: 44a8fb5cbca65364fa1ded7273617b37, type: 2}
+  - {fileID: 2100000, guid: 6694d0e5b65d5444ca289ae66ddeb870, type: 2}
+  - {fileID: 2100000, guid: 4e396e6bf2359324db8768e839e1d13b, type: 2}
+  - {fileID: 2100000, guid: f1c9a423a3eac52458b93ff646018612, type: 2}
+  - {fileID: 2100000, guid: 1550aa645e8bbb64b97a483bc33df975, type: 2}
+  - {fileID: 2100000, guid: 936355e1e02fc3247a0b475c6aa8c68f, type: 2}
+  - {fileID: 2100000, guid: bbd566fbd38cb3c40bdc57fc169c0427, type: 2}
+  - {fileID: 2100000, guid: 2a81335b2bca3994abe85ac6ad82bd97, type: 2}
+  - {fileID: 2100000, guid: b8e91d8960e19ab44abb979bb541bbf7, type: 2}
 --- !u!1 &671030439
 GameObject:
   m_ObjectHideFlags: 0
@@ -1558,6 +1559,18 @@ PrefabInstance:
     - target: {fileID: 6087846274010985868, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
       propertyPath: m_Name
       value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 7333289755038087677, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 0.117000006
+      objectReference: {fileID: 0}
+    - target: {fileID: 7333289755038087677, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 0.117000006
+      objectReference: {fileID: 0}
+    - target: {fileID: 7333289755038087677, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 0.126
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

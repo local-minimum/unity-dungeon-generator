@@ -36,7 +36,8 @@ namespace ProcDungeon.World
 
         public DungeonGrid DungeonGrid {  get; set; }
 
-        bool canRecieveInput = true;        
+        public List<MonoBehaviour> InputBlockers { get; private set; } = new List<MonoBehaviour>();
+        public bool CanRecieveInput => InputBlockers.Count == 0;
 
         public Vector2Int Coordinates { get; private set; }
         public Vector2Int Direction {  get; private set; }
@@ -79,7 +80,7 @@ namespace ProcDungeon.World
 
         public void OnMoveForward(InputAction.CallbackContext context)
         {
-            if (!canRecieveInput || !context.performed) return;
+            if (!CanRecieveInput || !context.performed) return;
 
             if (!Teleport(Coordinates + Direction)) {
                 var teleporter = CurrentTileTeleporter;
@@ -98,7 +99,7 @@ namespace ProcDungeon.World
 
         public void OnMoveBackward(InputAction.CallbackContext context)
         {
-            if (!canRecieveInput || !context.performed) return;
+            if (!CanRecieveInput || !context.performed) return;
 
             if (!Teleport(Coordinates - Direction))
             {
@@ -121,7 +122,7 @@ namespace ProcDungeon.World
 
         public void OnStrafeLeft(InputAction.CallbackContext context)
         {
-            if (!canRecieveInput || !context.performed) return;
+            if (!CanRecieveInput || !context.performed) return;
 
             if (!Teleport(Coordinates + Direction.RotateCCW())) { 
                 var teleporter = CurrentTileTeleporter; 
@@ -144,7 +145,7 @@ namespace ProcDungeon.World
 
         public void OnStrafeRight(InputAction.CallbackContext context)
         {
-            if (!canRecieveInput || !context.performed) return;
+            if (!CanRecieveInput || !context.performed) return;
 
             if (!Teleport(Coordinates + Direction.RotateCW()))
             {
@@ -168,7 +169,7 @@ namespace ProcDungeon.World
 
         public void OnRotateCW(InputAction.CallbackContext context)
         {
-            if (!canRecieveInput || !context.performed) return;
+            if (!CanRecieveInput || !context.performed) return;
 
             Teleport(Coordinates, Direction.RotateCW());
 
@@ -177,7 +178,7 @@ namespace ProcDungeon.World
 
         public void OnRotateCCW(InputAction.CallbackContext context)
         {
-            if (!canRecieveInput || !context.performed) return;
+            if (!CanRecieveInput || !context.performed) return;
 
             Teleport(Coordinates, Direction.RotateCCW());
 
@@ -188,7 +189,7 @@ namespace ProcDungeon.World
 
         public void OnTeleporter(InputAction.CallbackContext context)
         {
-            if (!canRecieveInput) return;
+            if (!CanRecieveInput) return;
 
             if (context.performed && DungeonHub.instance.AddTeleporterPair(Coordinates, Direction,  out var teleporter))
             {

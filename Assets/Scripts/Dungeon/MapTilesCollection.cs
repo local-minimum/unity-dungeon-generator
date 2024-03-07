@@ -7,12 +7,15 @@ namespace ProcDungeon {
     {
         [SerializeField]
         List<string> keys = new List<string>();
+
         [SerializeField]
-        List<GameObject> tiles = new List<GameObject>();
+        Renderer TilePrefab;
 
-        Dictionary<string, GameObject> lookup;
+        [SerializeField]
+        List<Material> materals = new List<Material>();
 
-        // TODO: Might want a fallback tile
+        Dictionary<string, Material> lookup;
+        
 
         public GameObject GetPrefab(string key)
         {
@@ -23,7 +26,9 @@ namespace ProcDungeon {
 
             if (lookup.ContainsKey(key))
             {
-                return lookup[key];
+                var rend = Instantiate(TilePrefab);
+                rend.material = lookup[key];
+                return rend.gameObject;
             }
             Debug.LogWarning($"Requested map tile '{key}' not know");
             return null;
@@ -32,18 +37,18 @@ namespace ProcDungeon {
         private void InitLookup()
         {
             int nKeys = keys.Count;
-            int nTiles = tiles.Count;
-            if (nKeys != nTiles)
+            int nMats = materals.Count;
+            if (nKeys != nMats)
             {
                 Debug.LogWarning("Number of keys not same as number of map tile prefabs");
 
             }
 
-            lookup = new Dictionary<string, GameObject>();
+            lookup = new Dictionary<string, Material>();
 
-            for (int i = 0, n = Mathf.Min(nKeys, nTiles); i < n; i++)
+            for (int i = 0, n = Mathf.Min(nKeys, nMats); i < n; i++)
             {
-                lookup.Add(keys[i], tiles[i]);
+                lookup.Add(keys[i], materals[i]);
             }
         }
     }

@@ -1,3 +1,4 @@
+using ProcDungeon.World;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,12 +18,21 @@ namespace ProcDungeon.UI
             map.SetActive(showMap);
         }
 
+
+
         public void ToggleMap(InputAction.CallbackContext context)
         {
             if (context.performed)
             {
                 showMap = !showMap;
                 map.SetActive(showMap);
+                if (showMap)
+                {
+                    PlayerController.Instance.InputBlockers.Add(this);
+                } else
+                {
+                    PlayerController.Instance.InputBlockers.Remove(this);
+                }
             }
         }
     }
