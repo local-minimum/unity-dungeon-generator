@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace ProcDungeon.World
 {
     public enum GridMapFeature { None, Door, Treasure, Teleporter, IllusaryWall, Other };
 
-    public struct GridPosition
+    public class GridPosition
     {
         public bool Seen;
         public GridMapFeature Feature;
@@ -15,10 +16,34 @@ namespace ProcDungeon.World
         public bool WestWall;
         public bool EastWall;
         public bool SouthWall;
+        private GameObject MapTile;
+
+        public void Visit()
+        {
+            Seen = true;
+            SyncMapLayer();
+        }
 
         public void SetFeature(GridMapFeature feature)
         {
             Feature = feature;
+        }
+
+        public void SetMapTile(GameObject mapTile)
+        {
+            MapTile = mapTile;
+            SyncMapLayer();
+        }
+
+        void SyncMapLayer()
+        {
+            if (MapTile == null) return;
+
+            MapTile.layer = LayerMask.NameToLayer(Seen ? "VisibleMap" : "InvisibleMap");
+        }
+        public GridPosition()
+        {
+            Feature = GridMapFeature.None;
         }
 
         public GridPosition(bool northWall, bool westWall, bool eastWall, bool southWall, GridMapFeature feature = GridMapFeature.None)
@@ -29,6 +54,7 @@ namespace ProcDungeon.World
             SouthWall = southWall;
             Seen = false;
             Feature = feature;
+            MapTile = null;
         }
 
         public GridPosition(IEnumerable<Vector2Int> directions, GridMapFeature feature = GridMapFeature.None)
@@ -39,6 +65,7 @@ namespace ProcDungeon.World
             SouthWall = directions.Contains(Vector2Int.down);
             Seen = false;
             Feature = feature;
+            MapTile = null;
         }
 
         public string GroundID {

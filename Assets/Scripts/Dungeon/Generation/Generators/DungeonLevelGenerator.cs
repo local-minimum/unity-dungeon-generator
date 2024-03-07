@@ -52,10 +52,12 @@ namespace ProcDungeon
             var segmenter = new GridSegmenter(ref settings);
             segmenter.Segment();
 
+            // ROOMS
             var roomGenerator = new RoomGenerator(grid, ref settings);
-
             roomGenerator.PlaceRooms(segmenter);
+            DungeonGrid.Rooms = roomGenerator.Rooms;
 
+            // HALLS
             var hallwayGenerator = new HallwayGenerator(grid, roomGenerator.Rooms, ref settings);
             hallwayGenerator.MakeHallways();
 
@@ -66,22 +68,25 @@ namespace ProcDungeon
                 hallwayGenerator.AddExtraHallway();
                 roomGenerator.CalculateHubSeparations();
             }
-
+            
             // TODO: Add Range to settings
             for (int i = 0, n = Random.Range(4, 8); i < n; i++)
             {
                 hallwayGenerator.AddDeadEndHallway();
             }
 
+            // SPAWN PLAYER
             DungeonRoom spawnRoom;
             var spawnPosition = PlayerController.ChooseStartPosition(roomGenerator.Rooms, DungeonGrid.Dungeon, out spawnRoom);
             var spawnLookDirection = SpawnLookDirection(spawnPosition, spawnRoom);
 
+            // DOORS
             var puzzleGenerator = new PuzzleGenerator(roomGenerator, spawnRoom, spawnPosition);
             var nDoors = puzzleGenerator.AddDoors(Random.Range(2, 4));
             Debug.Log($"Added {nDoors} doors to level");
             DungeonGrid.Doors = puzzleGenerator.Doors;
 
+            // PLACE WORLD
             DebugPlaceHallways(hallwayGenerator);
             DebugPlaceRooms(roomGenerator, hallwayGenerator);
 
@@ -90,6 +95,7 @@ namespace ProcDungeon
 
             SpawnPlayer(spawnPosition, spawnLookDirection, spawnRoom);
 
+            // SETUP MAP
             DungeonGrid.Hub = roomGenerator.CreateHub();
             DebugPlaceRoom(DungeonGrid.Hub, hallwayGenerator);
             DungeonHub.instance.Room = DungeonGrid.Hub;
@@ -98,6 +104,7 @@ namespace ProcDungeon
             // Note that this must be after debug place things which create info because because
             PrepareMap();
             LevelMapCamera.instance.AdjustView();
+            DungeonGrid.VisitPosition(spawnPosition, spawnLookDirection);
 
             Debug.Log($"Done level generation (Seed {seed})");
 
@@ -105,12 +112,6 @@ namespace ProcDungeon
 
         [SerializeField]
         Transform GenerateMapRoot;
-
-        [SerializeField]
-        string VisibleMapLayer = "VisibleMap";
-
-        [SerializeField]
-        string InvisibleMapLayer = "InvisibleMap";
 
 
         void PrepareMap()
@@ -121,12 +122,17 @@ namespace ProcDungeon
             {
                 var groundId = position.GroundID;
                 var prefab = lookup.GetPrefab(groundId);
-                if (prefab == null) continue;
+                if (prefab == null)
+                {
+                    Debug.LogWarning($"Failed to create map tile with ID {groundId} at {coordinates}");
+                    continue;
+                }
 
-                var floor = Instantiate(prefab, GenerateMapRoot);
-                floor.transform.position = DungeonGrid.LocalWorldPosition(coordinates, -0.2f);
-                floor.name = $"GroundMap {groundId} {coordinates}";
-                floor.layer =  LayerMask.NameToLayer(position.Seen ? VisibleMapLayer : InvisibleMapLayer);
+                var mapTile = Instantiate(prefab, GenerateMapRoot);
+                mapTile.transform.position = DungeonGrid.LocalWorldPosition(coordinates, -0.2f);
+                mapTile.name = $"GroundMap {groundId} {coordinates}";
+
+                position.SetMapTile(mapTile);
             }
         }
 

@@ -180,7 +180,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 3072
+    m_Bits: 2048
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 063dd2088fcacaf449c5c228dbd8b476, type: 2}
   m_TargetDisplay: 0
@@ -634,8 +634,6 @@ MonoBehaviour:
   generatedLevel: {fileID: 303964769}
   PlayerController: {fileID: 836635394}
   GenerateMapRoot: {fileID: 758466123}
-  VisibleMapLayer: VisibleMap
-  InvisibleMapLayer: InvisibleMap
 --- !u!4 &659351219
 Transform:
   m_ObjectHideFlags: 0

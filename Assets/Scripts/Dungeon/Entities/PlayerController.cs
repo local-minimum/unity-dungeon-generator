@@ -47,6 +47,8 @@ namespace ProcDungeon.World
             {
                 transform.position = DungeonGrid.LocalWorldPosition(target);
                 Coordinates = target;
+
+                DungeonGrid.VisitPosition(Coordinates, Direction);
                 return true;
             }
             return false;
@@ -61,6 +63,8 @@ namespace ProcDungeon.World
 
                 Coordinates = target;
                 Direction = direction;
+
+                DungeonGrid.VisitPosition(Coordinates, Direction);
                 return true;
             }
             return false;
