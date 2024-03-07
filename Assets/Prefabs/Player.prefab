@@ -251,7 +251,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bac037ee9461eb48bb09c2363b00b91, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  staticNorth: 1
+  zoomStep: 3
+  minZoom: 12
+  maxZoom: 36
 --- !u!1001 &5280964713992227714
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -21,6 +21,8 @@ public class DungeonGrid
         LevelSetting = levelSetting;
     }
 
+    public Rect BoundingBox =>
+        new Rect(Vector2.zero, new Vector2(LevelSetting.gridSizeColumns * LevelSetting.tileSize, LevelSetting.gridSizeRows * LevelSetting.tileSize));
     public Vector3 LocalWorldPosition(Vector2Int gridCoordinates, float elevation = 0f) =>
         new Vector3(gridCoordinates.x * LevelSetting.tileSize, elevation, gridCoordinates.y * LevelSetting.tileSize);
 

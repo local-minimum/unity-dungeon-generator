@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine.InputSystem;
 using ProcDungeon.World;
 using System.Collections.Generic;
+using ProcDungeon.UI;
 
 namespace ProcDungeon
 {
@@ -96,6 +97,7 @@ namespace ProcDungeon
 
             // Note that this must be after debug place things which create info because because
             PrepareMap();
+            LevelMapCamera.instance.AdjustView();
 
             Debug.Log($"Done level generation (Seed {seed})");
 

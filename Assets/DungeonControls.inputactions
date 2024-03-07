@@ -76,6 +76,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "LevelMap",
+                    "type": "Button",
+                    "id": "c708f9f6-973a-4295-a7ac-e7037085bdb4",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -230,6 +239,17 @@
                     "processors": "",
                     "groups": "Keyboard",
                     "action": "ConstructTeleporter",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "451e7bdc-d617-406d-b7ea-27f90a7f2603",
+                    "path": "<Keyboard>/m",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "LevelMap",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
