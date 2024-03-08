@@ -17,6 +17,7 @@ namespace ProcDungeon.World
         public bool EastWall;
         public bool SouthWall;
         private GameObject MapTile;
+        private GameObject FeatureTile;
 
         public void Visit()
         {
@@ -29,6 +30,12 @@ namespace ProcDungeon.World
             Feature = feature;
         }
 
+        public void SetFeatureTile(GameObject featureTile)
+        {
+            FeatureTile = featureTile;
+            SyncMapLayer();
+        }
+
         public void SetMapTile(GameObject mapTile)
         {
             MapTile = mapTile;
@@ -37,9 +44,14 @@ namespace ProcDungeon.World
 
         void SyncMapLayer()
         {
-            if (MapTile == null) return;
-
-            MapTile.layer = LayerMask.NameToLayer(Seen ? "VisibleMap" : "InvisibleMap");
+            if (MapTile != null)
+            {
+                MapTile.layer = LayerMask.NameToLayer(Seen ? "VisibleMap" : "InvisibleMap");
+            }
+            if (FeatureTile != null)
+            {
+                FeatureTile.layer = LayerMask.NameToLayer(Seen ? "VisibleMap" : "InvisibleMap");
+            }
         }
         public GridPosition()
         {
@@ -92,7 +104,7 @@ namespace ProcDungeon.World
             }
         }
 
-        public string FeatureID
+        private string FeatureID
         {
             get
             {
@@ -114,6 +126,6 @@ namespace ProcDungeon.World
             }
         }
 
-        public string ID => $"{FeatureID} {GroundID}";        
+        public string FullFeatureID => $"{FeatureID} {GroundID}";        
     }
 }

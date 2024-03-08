@@ -901,6 +901,8 @@ MonoBehaviour:
   - NWE
   - SWE
   - NSWE
+  - D NS
+  - D WE
   TilePrefab: {fileID: 5498870755295683595, guid: f217401f7875c774aac41be79920dee3, type: 3}
   materals:
   - {fileID: 2100000, guid: b5c3b5f9927b29f4aac74805855f791c, type: 2}
@@ -919,6 +921,8 @@ MonoBehaviour:
   - {fileID: 2100000, guid: bbd566fbd38cb3c40bdc57fc169c0427, type: 2}
   - {fileID: 2100000, guid: 2a81335b2bca3994abe85ac6ad82bd97, type: 2}
   - {fileID: 2100000, guid: b8e91d8960e19ab44abb979bb541bbf7, type: 2}
+  - {fileID: 2100000, guid: 5994a8ec7c5cc3a45a8fbc628ccc5741, type: 2}
+  - {fileID: 2100000, guid: a7ce6c7ebdef6e74dab4db8477d50574, type: 2}
 --- !u!1 &671030439
 GameObject:
   m_ObjectHideFlags: 0

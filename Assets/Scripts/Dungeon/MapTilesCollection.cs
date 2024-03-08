@@ -17,7 +17,7 @@ namespace ProcDungeon {
         Dictionary<string, Material> lookup;
         
 
-        public GameObject GetPrefab(string key)
+        public GameObject GetTileInstance(string key)
         {
             if (lookup == null)
             {

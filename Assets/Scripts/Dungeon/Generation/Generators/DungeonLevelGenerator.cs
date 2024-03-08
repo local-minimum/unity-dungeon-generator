@@ -121,18 +121,33 @@ namespace ProcDungeon
             foreach (var (coordinates, position) in DungeonGrid.GridPositions)
             {
                 var groundId = position.GroundID;
-                var prefab = lookup.GetPrefab(groundId);
-                if (prefab == null)
+                var mapTile = lookup.GetTileInstance(groundId);
+                if (mapTile == null)
                 {
                     Debug.LogWarning($"Failed to create map tile with ID {groundId} at {coordinates}");
                     continue;
                 }
 
-                var mapTile = Instantiate(prefab, GenerateMapRoot);
+                mapTile.transform.SetParent(GenerateMapRoot);
                 mapTile.transform.position = DungeonGrid.LocalWorldPosition(coordinates, -0.2f);
                 mapTile.name = $"GroundMap {groundId} {coordinates}";
-
                 position.SetMapTile(mapTile);
+
+                if (position.Feature != GridMapFeature.None)
+                {
+                    var featureTile = lookup.GetTileInstance(position.FullFeatureID);
+                    if (featureTile != null)
+                    {
+                        featureTile.transform.SetParent(GenerateMapRoot);
+                        featureTile.transform.position = DungeonGrid.LocalWorldPosition(coordinates, -0.1f);
+                        featureTile.name = $"MapFeature {position.FullFeatureID} {coordinates}";
+                        position.SetFeatureTile(featureTile);
+                    } else
+                    {
+                        Debug.LogWarning($"Missing map tile {position.FullFeatureID} at {coordinates}");
+                    }
+                }
+                
             }
         }
 
