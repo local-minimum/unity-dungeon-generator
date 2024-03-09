@@ -4,6 +4,8 @@ using UnityEngine.InputSystem;
 using ProcDungeon.World;
 using System.Collections.Generic;
 using ProcDungeon.UI;
+using ProcDungeon.Experimental;
+using Unity.VisualScripting;
 
 namespace ProcDungeon
 {
@@ -173,7 +175,7 @@ namespace ProcDungeon
         {
             Debug.Log($"Player spawns at {spawnPosition} in room {spawnRoom}");
             PlayerController.DungeonGrid = DungeonGrid;
-
+            PlayerController.AddComponent<ElevationNoiseSubscriber>();
             PlayerController.Teleport(spawnPosition, lookDirection);
 
         }
@@ -228,6 +230,7 @@ namespace ProcDungeon
                     var floor = Instantiate(debugFloorPrefab, generatedLevel);
                     floor.transform.position = DungeonGrid.LocalWorldPosition(tileCoordinates);
                     floor.name = $"Hallway {hallway.Id} Floor {tileCoordinates}";
+                    floor.AddComponent<ElevationNoiseSubscriber>();
 
                     DungeonGrid.GridPositions.Add(tileCoordinates, new GridPosition(hallway.WallDirection(i)));
                 }                
@@ -238,6 +241,8 @@ namespace ProcDungeon
                     wall.transform.position = wallPosition.Position;
                     wall.transform.rotation = wallPosition.Rotation;
                     wall.name = $"Hallway {hallway.Id} Wall {wallPosition.Coordinates} Facing {wallPosition.Direction}";
+                    wall.AddComponent<ElevationNoiseSubscriber>();
+
                 }
             }
         }
@@ -284,6 +289,7 @@ namespace ProcDungeon
                     wall.transform.position = wallPosition.Position;
                     wall.transform.rotation = wallPosition.Rotation;
                     wall.name = $"Room {room.RoomId} Wall {wallPosition.Coordinates} Facing {wallPosition.Direction}";
+                    wall.AddComponent<ElevationNoiseSubscriber>();
 
                 }
 
@@ -297,6 +303,8 @@ namespace ProcDungeon
                 var floor = Instantiate(debugFloorPrefab, generatedLevel);
                 floor.transform.position = new Vector3(tileCoordinates.x * settings.tileSize, 0, tileCoordinates.y * settings.tileSize);
                 floor.name = $"Room {room.RoomId} Interior {tileCoordinates}";
+                floor.AddComponent<ElevationNoiseSubscriber>();
+
                 if (tileCoordinates.x >= 0 && tileCoordinates.y >= 0)
                 {
                     DungeonGrid.GridPositions.Add(tileCoordinates, new GridPosition());
