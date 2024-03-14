@@ -15,6 +15,9 @@ public class DungeonGrid
     public List<Teleporter> Teleporters { get; set; } = new List<Teleporter>();
     public DungeonRoom Hub { get; set; }
 
+    public Vector2Int PlayerPosition { get; set; }
+    public Vector2Int PlayerLookDirection { get; set; }
+
     public Dictionary<Vector2Int, GridPosition> GridPositions { get; set; } = new Dictionary<Vector2Int, GridPosition>();
 
     bool SafeVisit(Vector2Int coordinates)

@@ -18,32 +18,11 @@ namespace ProcDungeon
         int seed = 1234;
         public int Seed => seed;
 
-        [SerializeField]
-        GameObject debugFloorPrefab;
-
-        [SerializeField]
-        GameObject debugWallPrefab;
-
-        [SerializeField]
-        AbstractDoorController debugDoorPrefab;
-
-        [SerializeField]
-        SpecificKey debugKeyPrefab;
-
-        [SerializeField]
-        Transform generatedLevel;
-
-        public PlayerController PlayerController;
         public DungeonGrid DungeonGrid { get; private set; }
 
         void GenerateLevel(int seed)
         {
             Debug.Log($"Starting level generation (Seed {seed})");
-
-            foreach (Transform t in generatedLevel.transform)
-            {
-                Destroy(t.gameObject);
-            }
 
             Random.InitState(seed);
 
@@ -89,69 +68,27 @@ namespace ProcDungeon
             DungeonGrid.Doors = puzzleGenerator.Doors;
 
             // PLACE WORLD
-            DebugPlaceHallways(hallwayGenerator);
-            DebugPlaceRooms(roomGenerator, hallwayGenerator);
+            RegisterHallways(hallwayGenerator);
+            RegisterRooms(roomGenerator, hallwayGenerator);
 
-            DebugPlaceDoors(puzzleGenerator);
-            DebugPlaceKeys(puzzleGenerator);
+            RegisterDoors(puzzleGenerator);
+            RegisterKeys(puzzleGenerator);
 
-            SpawnPlayer(spawnPosition, spawnLookDirection, spawnRoom);
+            // SpawnPlayer(spawnPosition, spawnLookDirection, spawnRoom);
+            DungeonGrid.PlayerPosition = spawnPosition;
+            DungeonGrid.PlayerLookDirection = spawnLookDirection;
 
             // SETUP MAP
             DungeonGrid.Hub = roomGenerator.CreateHub();
-            DebugPlaceRoom(DungeonGrid.Hub, hallwayGenerator);
+            RegisterRoom(DungeonGrid.Hub, hallwayGenerator);
             DungeonHub.instance.Room = DungeonGrid.Hub;
 
-
-            // Note that this must be after debug place things which create info because because
-            PrepareMap();
-            LevelMapCamera.instance.AdjustView();
-            DungeonGrid.VisitPosition(spawnPosition, spawnLookDirection);
-
+            // Note that this must be after all things have been registered            
             Debug.Log($"Done level generation (Seed {seed})");
 
+            DungeonLevelInstancer.instance.InstaniateLevel(DungeonGrid);
         }
 
-        [SerializeField]
-        Transform GenerateMapRoot;
-
-
-        void PrepareMap()
-        {
-            var lookup = MapTilesCollection.instance;
-
-            foreach (var (coordinates, position) in DungeonGrid.GridPositions)
-            {
-                var groundId = position.GroundID;
-                var mapTile = lookup.GetTileInstance(groundId);
-                if (mapTile == null)
-                {
-                    Debug.LogWarning($"Failed to create map tile with ID {groundId} at {coordinates}");
-                    continue;
-                }
-
-                mapTile.transform.SetParent(GenerateMapRoot);
-                mapTile.transform.position = DungeonGrid.LocalWorldPosition(coordinates, -0.2f);
-                mapTile.name = $"GroundMap {groundId} {coordinates}";
-                position.SetMapTile(mapTile);
-
-                if (position.Feature != GridMapFeature.None)
-                {
-                    var featureTile = lookup.GetTileInstance(position.FullFeatureID);
-                    if (featureTile != null)
-                    {
-                        featureTile.transform.SetParent(GenerateMapRoot);
-                        featureTile.transform.position = DungeonGrid.LocalWorldPosition(coordinates, -0.1f);
-                        featureTile.name = $"MapFeature {position.FullFeatureID} {coordinates}";
-                        position.SetFeatureTile(featureTile);
-                    } else
-                    {
-                        Debug.LogWarning($"Missing map tile {position.FullFeatureID} at {coordinates}");
-                    }
-                }
-                
-            }
-        }
 
         private Vector2Int SpawnLookDirection(Vector2Int spawnPosition, DungeonRoom spawnRoom)
         {
@@ -171,19 +108,8 @@ namespace ProcDungeon
 
         }
 
-        private void SpawnPlayer(Vector2Int spawnPosition, Vector2Int lookDirection, DungeonRoom spawnRoom)
-        {
-            Debug.Log($"Player spawns at {spawnPosition} in room {spawnRoom}");
-            PlayerController.DungeonGrid = DungeonGrid;
-            PlayerController.AddComponent<ElevationNoiseSubscriber>();
-            PlayerController.Teleport(spawnPosition, lookDirection);
-
-        }
-
-
         private void Start()
         {
-
             GenerateLevel(seed);
         }
 
@@ -194,74 +120,56 @@ namespace ProcDungeon
                 GenerateLevel(Mathf.RoundToInt(Random.value * 10000));
             }
         }
-
-        private void DebugPlaceKeys(PuzzleGenerator puzzleGenerator)
+        
+        private void RegisterKeys(PuzzleGenerator puzzleGenerator)
         {
             foreach (var keyInfo in puzzleGenerator.Keys)
             {
-                var key = Instantiate(debugKeyPrefab, generatedLevel);
-                key.Key = keyInfo;
-                key.transform.position = DungeonGrid.LocalWorldPosition(keyInfo.Coordinates);
-                key.name = $"Key {keyInfo.Id}";
+                DungeonGrid.GridPositions[keyInfo.Coordinates].AddKey(keyInfo);
             }
         }
 
-        private void DebugPlaceDoors(PuzzleGenerator puzzleGenerator)
+        private void RegisterDoors(PuzzleGenerator puzzleGenerator)
         {
             foreach (var doorInfo in puzzleGenerator.Doors)
             {
-                var door = Instantiate(debugDoorPrefab, generatedLevel);
-                door.dungeonDoor = doorInfo;
-                door.transform.position = DungeonGrid.LocalWorldPosition(doorInfo.Coordinates);
-                door.transform.rotation = doorInfo.DirectionFromRoom.AsQuaternion();
-                door.name = $"Door connecting sector {doorInfo.Sectors[0]} <=> {doorInfo.Sectors[1]}";
-
-                DungeonGrid.GridPositions[doorInfo.Coordinates].SetFeature(GridMapFeature.Door);
+                DungeonGrid.GridPositions[doorInfo.Coordinates].SetDoor(doorInfo);
             }
         }
 
-        private void DebugPlaceHallways(HallwayGenerator hallwayGenerator)
+        private void RegisterHallways(HallwayGenerator hallwayGenerator)
         {
             foreach (var hallway in hallwayGenerator.Hallways)
             {
                 for (int i = 0, n=hallway.Hallway.Count; i<n; i++)                
                 {
+                    
                     var tileCoordinates = hallway.Hallway[i];
-                    var floor = Instantiate(debugFloorPrefab, generatedLevel);
-                    floor.transform.position = DungeonGrid.LocalWorldPosition(tileCoordinates);
-                    floor.name = $"Hallway {hallway.Id} Floor {tileCoordinates}";
-                    floor.AddComponent<ElevationNoiseSubscriber>();
 
-                    DungeonGrid.GridPositions.Add(tileCoordinates, new GridPosition(hallway.WallDirection(i)));
+                    DungeonGrid.GridPositions.Add(
+                        tileCoordinates, 
+                        new GridPosition(
+                            hallway.WallDirection(i), 
+                            category: GridMapCategory.Hallway,
+                            categoryId: hallway.Id
+                        )
+                    );
                 }                
-
-                foreach (var wallPosition in hallway.Walls(settings.tileSize, settings.tileSize * 0.5f))
-                {
-                    var wall = Instantiate(debugWallPrefab, generatedLevel);
-                    wall.transform.position = wallPosition.Position;
-                    wall.transform.rotation = wallPosition.Rotation;
-                    wall.name = $"Hallway {hallway.Id} Wall {wallPosition.Coordinates} Facing {wallPosition.Direction}";
-                    wall.AddComponent<ElevationNoiseSubscriber>();
-
-                }
             }
         }
 
-        private void DebugPlaceRooms(RoomGenerator roomGenerator, HallwayGenerator hallwayGenerator)
+        private void RegisterRooms(RoomGenerator roomGenerator, HallwayGenerator hallwayGenerator)
         {
             foreach (var room in roomGenerator.Rooms)
             {
-                DebugPlaceRoom(room, hallwayGenerator);
+                RegisterRoom(room, hallwayGenerator);
             }
         }
 
-        void DebugPlaceRoom(DungeonRoom room, HallwayGenerator hallwayGenerator)
+        void RegisterRoom(DungeonRoom room, HallwayGenerator hallwayGenerator)
         {
             foreach (var tileCoordinates in room.Perimeter)
             {
-                var floor = Instantiate(debugFloorPrefab, generatedLevel);
-                floor.transform.position = DungeonGrid.LocalWorldPosition(tileCoordinates);
-                floor.name = $"Room {room.RoomId} Perimeter {tileCoordinates}";
 
                 var directions = new List<Vector2Int>();
 
@@ -283,32 +191,36 @@ namespace ProcDungeon
                     if (isInHall) continue;
 
                     directions.Add(direction);
-
-                    var wallPosition = WallPosition.From(tileCoordinates, direction, settings.tileSize, settings.tileSize * 0.5f);
-                    var wall = Instantiate(debugWallPrefab, generatedLevel);
-                    wall.transform.position = wallPosition.Position;
-                    wall.transform.rotation = wallPosition.Rotation;
-                    wall.name = $"Room {room.RoomId} Wall {wallPosition.Coordinates} Facing {wallPosition.Direction}";
-                    wall.AddComponent<ElevationNoiseSubscriber>();
-
                 }
 
-                if (tileCoordinates.x >= 0 && tileCoordinates.y >= 0) {
-                    DungeonGrid.GridPositions.Add(tileCoordinates, new GridPosition(directions));
-                }
+                var isHub = tileCoordinates.x < 0 && tileCoordinates.y < 0;
+
+                if (isHub && DungeonGrid.GridPositions.ContainsKey(tileCoordinates)) { continue; }
+
+                DungeonGrid.GridPositions.Add(
+                    tileCoordinates, 
+                    new GridPosition(
+                        directions, 
+                        category: isHub ? GridMapCategory.Hub : GridMapCategory.Room,
+                        categoryId: room.RoomId
+                    )
+                );
             }
 
             foreach (var tileCoordinates in room.Interior)
             {
-                var floor = Instantiate(debugFloorPrefab, generatedLevel);
-                floor.transform.position = new Vector3(tileCoordinates.x * settings.tileSize, 0, tileCoordinates.y * settings.tileSize);
-                floor.name = $"Room {room.RoomId} Interior {tileCoordinates}";
-                floor.AddComponent<ElevationNoiseSubscriber>();
 
-                if (tileCoordinates.x >= 0 && tileCoordinates.y >= 0)
-                {
-                    DungeonGrid.GridPositions.Add(tileCoordinates, new GridPosition());
-                }
+                var isHub = tileCoordinates.x < 0 && tileCoordinates.y < 0;
+
+                if (isHub && DungeonGrid.GridPositions.ContainsKey(tileCoordinates)) { continue; }
+
+                DungeonGrid.GridPositions.Add(
+                    tileCoordinates, 
+                    new GridPosition(
+                        category: isHub ? GridMapCategory.Hub : GridMapCategory.Room,
+                        categoryId: room.RoomId
+                    )
+                );
             }
         }
     }

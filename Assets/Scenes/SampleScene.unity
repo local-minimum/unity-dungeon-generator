@@ -592,6 +592,8 @@ GameObject:
   - component: {fileID: 659351220}
   - component: {fileID: 659351221}
   - component: {fileID: 659351222}
+  - component: {fileID: 659351223}
+  - component: {fileID: 659351224}
   m_Layer: 0
   m_Name: Level
   m_TagString: Untagged
@@ -627,13 +629,6 @@ MonoBehaviour:
     multiSegmentRoomProbability: 0.8
     exitCandidateTolerance: 3
   seed: 1234
-  debugFloorPrefab: {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
-  debugWallPrefab: {fileID: 119448252790878994, guid: a727263e769661f488fe51b2e44547a8, type: 3}
-  debugDoorPrefab: {fileID: 1892188136696872692, guid: 0c93cf663e120cd4a8d9fe8c14f47133, type: 3}
-  debugKeyPrefab: {fileID: 4307167784541844539, guid: ec46119c2041e7b44b2f4f9ae9938921, type: 3}
-  generatedLevel: {fileID: 303964769}
-  PlayerController: {fileID: 836635394}
-  GenerateMapRoot: {fileID: 758466123}
 --- !u!4 &659351219
 Transform:
   m_ObjectHideFlags: 0
@@ -923,6 +918,38 @@ MonoBehaviour:
   - {fileID: 2100000, guid: b8e91d8960e19ab44abb979bb541bbf7, type: 2}
   - {fileID: 2100000, guid: 5994a8ec7c5cc3a45a8fbc628ccc5741, type: 2}
   - {fileID: 2100000, guid: a7ce6c7ebdef6e74dab4db8477d50574, type: 2}
+--- !u!114 &659351223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 659351217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e558160de31370d4ca389f10d4073b23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  generatedLevel: {fileID: 303964769}
+  generatedMap: {fileID: 758466123}
+  basePositionPrefab: {fileID: 0}
+  PlayerController: {fileID: 836635394}
+--- !u!114 &659351224
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 659351217}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f371b7998191cb4e86e489787dca417, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fallbackFloorPrefab: {fileID: 6414792800526735127, guid: b07460a1486b27a418b100647bf6e6b4, type: 3}
+  fallbackWallPrefab: {fileID: 119448252790878994, guid: a727263e769661f488fe51b2e44547a8, type: 3}
+  fallbackDoorPrefab: {fileID: 1892188136696872692, guid: 0c93cf663e120cd4a8d9fe8c14f47133, type: 3}
+  fallbackKeyPrefab: {fileID: 4307167784541844539, guid: ec46119c2041e7b44b2f4f9ae9938921, type: 3}
 --- !u!1 &671030439
 GameObject:
   m_ObjectHideFlags: 0
@@ -1563,18 +1590,6 @@ PrefabInstance:
     - target: {fileID: 6087846274010985868, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
       propertyPath: m_Name
       value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 7333289755038087677, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
-      propertyPath: m_BackGroundColor.b
-      value: 0.117000006
-      objectReference: {fileID: 0}
-    - target: {fileID: 7333289755038087677, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
-      propertyPath: m_BackGroundColor.g
-      value: 0.117000006
-      objectReference: {fileID: 0}
-    - target: {fileID: 7333289755038087677, guid: 68f916c08c5da444c9330964e28a773d, type: 3}
-      propertyPath: m_BackGroundColor.r
-      value: 0.126
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

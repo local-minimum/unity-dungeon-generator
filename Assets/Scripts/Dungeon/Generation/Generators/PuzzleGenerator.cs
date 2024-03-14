@@ -6,14 +6,11 @@ namespace ProcDungeon
 {
     public class PuzzleGenerator
     {
-        private readonly RoomGenerator RoomGenerator;
-
         public readonly List<DungeonDoor> Doors = new List<DungeonDoor>();
         private DungeonRoom playerSpawnRoom;
 
         public readonly List<DungeonDoorKey> Keys = new List<DungeonDoorKey>();
 
-        private Vector2Int playerSpawn;
         private List<List<DungeonRoom>> roomSectors = new List<List<DungeonRoom>>();
         
         private Dictionary<int, List<int>> sectorNeighbourGraph = new Dictionary<int, List<int>>();
@@ -24,9 +21,7 @@ namespace ProcDungeon
 
         public PuzzleGenerator(RoomGenerator roomGenerator, DungeonRoom playerSpawnRoom, Vector2Int playerSpawn)
         {
-            RoomGenerator = roomGenerator;
             this.playerSpawnRoom = playerSpawnRoom;
-            this.playerSpawn = playerSpawn;
 
             var playerSector = new List<DungeonRoom>();
             playerSector.AddRange(roomGenerator.Rooms);
