@@ -9,8 +9,10 @@ namespace ProcDungeon.World
 {
     public class PlayerController : DungeonEntity
     {
+        private enum Movement { None, Forward, Backward, StrafeLeft, StrafeRight, TurnCCW, TurnCW };
+
         public bool PortalsMaintainsDirection;
-        public bool PortalsAllowAnyDirectionEntry;
+        public bool PortalsAllowAnyDirectionEntry;        
 
         public static PlayerController Instance { get; private set; }
 
@@ -41,6 +43,69 @@ namespace ProcDungeon.World
 
         public Vector2Int Coordinates { get; private set; }
         public Vector2Int Direction {  get; private set; }
+                
+        private Movement NextMovement = Movement.None;
+        private Movement QueuedMovement = Movement.None;
+
+        private List<Movement> ActiveMovements = new List<Movement>();
+
+        Movement LastMovementInput
+        {
+            get
+            {
+                var idx = ActiveMovements.Count - 1;
+                if (idx < 0) return Movement.None;
+
+                return ActiveMovements[idx];
+            }
+        }
+
+        Movement GetMovement()
+        {
+            var movement = NextMovement;
+            NextMovement = QueuedMovement;
+
+            if (movement == Movement.None)
+            {
+                return LastMovementInput;
+            }
+
+            return movement;
+        }
+
+        void RegisterMovement(InputAction.CallbackContext context, Movement movement)
+        {
+            if (context.performed)
+            {
+                if (NextMovement == Movement.None)
+                {
+                    NextMovement = movement;
+                    Debug.Log($"Tigger {movement}");
+                }
+                else
+                {
+                    QueuedMovement = movement;
+                    Debug.Log($"Queued up {movement}");
+                }
+
+                if (!ActiveMovements.Contains(movement))
+                {
+                    ActiveMovements.Add(movement);
+                }
+            }
+
+            if (context.canceled)
+            {
+                if (QueuedMovement == movement && NextMovement == movement)
+                {
+                    Debug.Log($"Clean up queued {movement}");
+                    QueuedMovement = Movement.None;
+                }
+
+                ActiveMovements.Remove(movement);
+
+            }
+        }
 
         public bool Teleport(Vector2Int target)
         {
@@ -80,109 +145,39 @@ namespace ProcDungeon.World
 
         public void OnMoveForward(InputAction.CallbackContext context)
         {
-            if (!CanRecieveInput || !context.performed) return;
-
-            if (!Teleport(Coordinates + Direction)) {
-                var teleporter = CurrentTileTeleporter;
-
-                if (teleporter != null)
-                {                    
-                    if (Direction.IsInverseDirection(teleporter.ExitDirection))
-                    {
-                        Teleport(teleporter.PairedTeleporter.Coordinates, teleporter.PairedTeleporter.ExitDirection, true);
-                    }
-                }
-            }
-
-            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
+            if (!CanRecieveInput) return;
+            RegisterMovement(context, Movement.Forward);
         }
 
         public void OnMoveBackward(InputAction.CallbackContext context)
         {
-            if (!CanRecieveInput || !context.performed) return;
-
-            if (!Teleport(Coordinates - Direction))
-            {
-                var teleporter = CurrentTileTeleporter;
-
-                if (teleporter != null && PortalsAllowAnyDirectionEntry)
-                {
-                    if (Direction == teleporter.ExitDirection)
-                    {
-                        Teleport(
-                            teleporter.PairedTeleporter.Coordinates, 
-                            PortalsMaintainsDirection ? -1 * teleporter.PairedTeleporter.ExitDirection : teleporter.PairedTeleporter.ExitDirection
-                        );
-                    }
-                }
-            }
-
-            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
+            if (!CanRecieveInput) return;
+            RegisterMovement(context, Movement.Backward);
         }
 
         public void OnStrafeLeft(InputAction.CallbackContext context)
         {
-            if (!CanRecieveInput || !context.performed) return;
-
-            if (!Teleport(Coordinates + Direction.RotateCCW())) { 
-                var teleporter = CurrentTileTeleporter; 
-
-                if (teleporter != null && PortalsAllowAnyDirectionEntry)
-                {
-                    if (Direction.RotateCW() == teleporter.ExitDirection)
-                    {
-                        Teleport(
-                            teleporter.PairedTeleporter.Coordinates,
-                            PortalsMaintainsDirection ? teleporter.PairedTeleporter.ExitDirection.RotateCW() : teleporter.PairedTeleporter.ExitDirection
-                        );
-                    }
-                }
-            };
-
-            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
-
+            if (!CanRecieveInput) return;
+            RegisterMovement(context, Movement.StrafeLeft);
         }
 
         public void OnStrafeRight(InputAction.CallbackContext context)
         {
-            if (!CanRecieveInput || !context.performed) return;
-
-            if (!Teleport(Coordinates + Direction.RotateCW()))
-            {
-                var teleporter = CurrentTileTeleporter;
-                if (teleporter != null && PortalsAllowAnyDirectionEntry)
-                {
-                    if (Direction.RotateCCW() == teleporter.ExitDirection)
-                    {
-                        Teleport(
-                            teleporter.PairedTeleporter.Coordinates,
-                            PortalsMaintainsDirection ? teleporter.PairedTeleporter.ExitDirection.RotateCCW() : teleporter.PairedTeleporter.ExitDirection
-                        );
-                    }
-                }
-                
-            }
-
-            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
-
+            if (!CanRecieveInput) return;
+            RegisterMovement(context, Movement.StrafeRight);
         }
 
         public void OnRotateCW(InputAction.CallbackContext context)
         {
-            if (!CanRecieveInput || !context.performed) return;
+            if (!CanRecieveInput) return;
 
-            Teleport(Coordinates, Direction.RotateCW());
-
-            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
+            RegisterMovement(context, Movement.TurnCW);
         }
 
         public void OnRotateCCW(InputAction.CallbackContext context)
         {
-            if (!CanRecieveInput || !context.performed) return;
-
-            Teleport(Coordinates, Direction.RotateCCW());
-
-            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
+            if (!CanRecieveInput) return;
+            RegisterMovement(context, Movement.TurnCCW);
         }
 
         const string destroyTeleporterMessage = "Dismantle Teleporter";
@@ -218,6 +213,76 @@ namespace ProcDungeon.World
                 DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
 
                 Debug.Log("Invalid teleporter position");
+            }
+        }
+
+        [SerializeField, Range(0, 1)]
+        float tickTime = 0.4f;
+
+        float lastTick;
+
+        private Vector2Int MovementToDirection(Movement movement, Vector2Int forwardDirection)
+        {
+            switch (movement)
+            {
+                case Movement.Forward:
+                    return forwardDirection;
+                case Movement.Backward:
+                    return -forwardDirection;
+                case Movement.StrafeLeft:
+                    return forwardDirection.RotateCCW();
+                case Movement.StrafeRight:
+                    return forwardDirection.RotateCW();
+                default:
+                    return Vector2Int.zero;
+            }
+
+        }
+
+        private void ExecuteMovement(Movement movement)
+        {
+            if (movement == Movement.None) return;
+
+            Debug.Log($"Tick {movement}");
+
+            if (movement == Movement.TurnCW || movement == Movement.TurnCCW)
+            {
+                Teleport(Coordinates, movement == Movement.TurnCW ? Direction.RotateCW() : Direction.RotateCCW());
+            } else
+            {
+                var moveDirection = MovementToDirection(movement, Direction);
+                if (!Teleport(Coordinates + moveDirection))
+                {
+                    var teleporter = CurrentTileTeleporter;
+                    if (teleporter != null && (PortalsAllowAnyDirectionEntry || movement == Movement.Forward))
+                    {
+                        if (moveDirection == -teleporter.ExitDirection)
+                        {
+                            Teleport(
+                                teleporter.PairedTeleporter.Coordinates,
+                                PortalsMaintainsDirection 
+                                    ? MovementToDirection(
+                                        movement, 
+                                        movement == Movement.StrafeLeft || movement == Movement.StrafeRight ? -teleporter.PairedTeleporter.ExitDirection : teleporter.PairedTeleporter.ExitDirection
+                                      ) 
+                                    : teleporter.PairedTeleporter.ExitDirection
+                            );
+                        }
+                    }
+
+                }
+            }
+
+            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
+        }
+
+        private void Update()
+        {
+            if (Time.timeSinceLevelLoad - tickTime > lastTick)
+            {
+                lastTick = Time.timeSinceLevelLoad;
+                var movement = GetMovement();
+                ExecuteMovement(movement);
             }
         }
 
@@ -288,5 +353,5 @@ namespace ProcDungeon.World
 
             return ChooseStartPosition(room, dungeonGridLayer);    
         }
-    }
+    }    
 }
