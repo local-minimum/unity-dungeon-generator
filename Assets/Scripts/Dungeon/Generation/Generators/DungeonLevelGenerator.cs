@@ -3,9 +3,7 @@ using System.Linq;
 using UnityEngine.InputSystem;
 using ProcDungeon.World;
 using System.Collections.Generic;
-using ProcDungeon.UI;
-using ProcDungeon.Experimental;
-using Unity.VisualScripting;
+
 
 namespace ProcDungeon
 {
@@ -58,7 +56,7 @@ namespace ProcDungeon
 
             // SPAWN PLAYER
             DungeonRoom spawnRoom;
-            var spawnPosition = PlayerController.ChooseStartPosition(roomGenerator.Rooms, DungeonGrid.Dungeon, out spawnRoom);
+            var spawnPosition = PlayerStartSelector.ChooseStartPosition(roomGenerator.Rooms, DungeonGrid.Dungeon, out spawnRoom);
             var spawnLookDirection = SpawnLookDirection(spawnPosition, spawnRoom);
 
             // DOORS

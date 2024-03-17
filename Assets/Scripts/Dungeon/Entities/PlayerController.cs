@@ -1,5 +1,4 @@
 using ProcDungeon.UI;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -43,12 +42,13 @@ namespace ProcDungeon.World
 
         public Vector2Int Coordinates { get; private set; }
         public Vector2Int Direction {  get; private set; }
-                
+
+        #region Movement
         private Movement NextMovement = Movement.None;
         private Movement QueuedMovement = Movement.None;
 
         private List<Movement> ActiveMovements = new List<Movement>();
-
+        
         Movement LastMovementInput
         {
             get
@@ -111,7 +111,49 @@ namespace ProcDungeon.World
 
             }
         }
+        Teleporter CurrentTileTeleporter => DungeonGrid.Teleporters.FirstOrDefault(t => t.Coordinates == Coordinates);
 
+        private void ExecuteMovement(Movement movement)
+        {
+            if (movement == Movement.None) return;
+
+            Debug.Log($"Tick {movement}");
+
+            if (movement == Movement.TurnCW || movement == Movement.TurnCCW)
+            {
+                Teleport(Coordinates, movement == Movement.TurnCW ? Direction.RotateCW() : Direction.RotateCCW());
+            }
+            else
+            {
+                var moveDirection = MovementToDirection(movement, Direction);
+                if (!Teleport(Coordinates + moveDirection))
+                {
+                    var teleporter = CurrentTileTeleporter;
+                    if (teleporter != null && (PortalsAllowAnyDirectionEntry || movement == Movement.Forward))
+                    {
+                        if (moveDirection == -teleporter.ExitDirection)
+                        {
+                            Teleport(
+                                teleporter.PairedTeleporter.Coordinates,
+                                PortalsMaintainsDirection
+                                    ? MovementToDirection(
+                                        movement,
+                                        movement == Movement.StrafeLeft || movement == Movement.StrafeRight ? -teleporter.PairedTeleporter.ExitDirection : teleporter.PairedTeleporter.ExitDirection
+                                      )
+                                    : teleporter.PairedTeleporter.ExitDirection
+                            );
+                        }
+                    }
+
+                }
+            }
+
+            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
+        }
+
+        #endregion
+
+        #region Teleport / Instant Movement
         public bool Teleport(Vector2Int target)
         {
             if (DungeonGrid.Accessible(target, EntityType))
@@ -140,14 +182,9 @@ namespace ProcDungeon.World
             }
             return false;
         }
+        #endregion
 
-        public void Rotate(Vector2Int direction)
-        {
-            if (direction == Direction) return;
-        }
-
-        Teleporter CurrentTileTeleporter => DungeonGrid.Teleporters.FirstOrDefault(t => t.Coordinates == Coordinates);
-
+        #region Input Handlers
         public void OnMoveForward(InputAction.CallbackContext context)
         {
             if (!CanRecieveInput) return;
@@ -184,20 +221,18 @@ namespace ProcDungeon.World
             if (!CanRecieveInput) return;
             RegisterMovement(context, Movement.TurnCCW);
         }
-
-        const string destroyTeleporterMessage = "Dismantle Teleporter";
-
         public void OnTeleporter(InputAction.CallbackContext context)
         {
             if (!CanRecieveInput) return;
 
-            if (context.performed && DungeonHub.instance.AddTeleporterPair(Coordinates, Direction,  out var teleporter))
+            if (context.performed && DungeonHub.instance.AddTeleporterPair(Coordinates, Direction, out var teleporter))
             {
                 teleporter.name = $"Level Teleporter {Coordinates}";
                 Debug.Log($"Added teleporter {teleporter}");
-            } else if (
-                context.performed 
-                && DungeonHub.instance.FacingTeleporter(Coordinates, Direction) 
+            }
+            else if (
+                context.performed
+                && DungeonHub.instance.FacingTeleporter(Coordinates, Direction)
                 && DungeonHub.instance.CanDestroyTeleporter(Coordinates)
              )
             {
@@ -213,13 +248,18 @@ namespace ProcDungeon.World
                 };
 
                 DelayedAction.instance.ShowMessage(destroyTeleporterMessage, callback, 1.5f);
-            } else
+            }
+            else
             {
                 DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
 
                 Debug.Log("Invalid teleporter position");
             }
         }
+
+        #endregion
+
+        const string destroyTeleporterMessage = "Dismantle Teleporter";
 
         [SerializeField, Range(0, 1)]
         float tickTime = 0.4f;
@@ -244,43 +284,6 @@ namespace ProcDungeon.World
 
         }
 
-        private void ExecuteMovement(Movement movement)
-        {
-            if (movement == Movement.None) return;
-
-            Debug.Log($"Tick {movement}");
-
-            if (movement == Movement.TurnCW || movement == Movement.TurnCCW)
-            {
-                Teleport(Coordinates, movement == Movement.TurnCW ? Direction.RotateCW() : Direction.RotateCCW());
-            } else
-            {
-                var moveDirection = MovementToDirection(movement, Direction);
-                if (!Teleport(Coordinates + moveDirection))
-                {
-                    var teleporter = CurrentTileTeleporter;
-                    if (teleporter != null && (PortalsAllowAnyDirectionEntry || movement == Movement.Forward))
-                    {
-                        if (moveDirection == -teleporter.ExitDirection)
-                        {
-                            Teleport(
-                                teleporter.PairedTeleporter.Coordinates,
-                                PortalsMaintainsDirection 
-                                    ? MovementToDirection(
-                                        movement, 
-                                        movement == Movement.StrafeLeft || movement == Movement.StrafeRight ? -teleporter.PairedTeleporter.ExitDirection : teleporter.PairedTeleporter.ExitDirection
-                                      ) 
-                                    : teleporter.PairedTeleporter.ExitDirection
-                            );
-                        }
-                    }
-
-                }
-            }
-
-            DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
-        }
-
         private void Update()
         {
             if (Time.timeSinceLevelLoad - tickTime > lastTick)
@@ -290,73 +293,5 @@ namespace ProcDungeon.World
                 ExecuteMovement(movement);
             }
         }
-
-        private static Vector2Int ChooseStartPosition(
-            DungeonRoom room,
-            DungeonGridLayer dungeonGridLayer
-        )
-        {
-            if (room.Interior.Count > 0)
-            {
-                return room.Interior.OrderBy(_ => Random.value).FirstOrDefault();
-            }
-
-            return room.Perimeter
-                .Where(coords => dungeonGridLayer[coords] == DungeonGridLayer.ROOM_PERIMETER)
-                .OrderBy(_ => Random.value)
-                .FirstOrDefault();
-        }
-
-        public static Vector2Int ChooseStartPosition(
-            List<DungeonRoom> rooms, 
-            DungeonGridLayer dungeonGridLayer,
-            out DungeonRoom room
-        )
-        {
-            var candidates = rooms.OrderByDescending(r => r.HubSeparation).ToList();
-
-            var candidate = candidates.FirstOrDefault();
-            //Debug.Log($"Candidate {candidate.RoomId} has {candidate.HubSeparation} separation");
-
-            if (candidate == null)
-            {
-                
-                room = null;
-                return Vector2Int.zero;
-
-            }
-
-            if (candidate.HubSeparation == 0)
-            {
-                room = candidate;
-                return ChooseStartPosition(candidate, dungeonGridLayer);
-            }
-
-            if (candidate.HubSeparation < 4)
-            {
-                room = candidates
-                    .Where(c => c.HubSeparation <= candidate.HubSeparation && c.HubSeparation > 0)
-                    .OrderBy(_ => Random.value)
-                    .FirstOrDefault();
-
-
-                return ChooseStartPosition(room, dungeonGridLayer);
-            }
-
-            room = candidates
-                .Where(c => c.HubSeparation >= candidate.HubSeparation - 1)
-                .OrderBy(_ => Random.value)
-                .FirstOrDefault();
-
-            if ( room == null )
-            {
-                Debug.LogError(
-                    $"Illogical fail to find start position from {candidates.Count} candidates based on {candidate} with separation {candidate.HubSeparation}"
-                );
-                return ChooseStartPosition(candidate, dungeonGridLayer);
-            }
-
-            return ChooseStartPosition(room, dungeonGridLayer);    
-        }
-    }    
+    }
 }
