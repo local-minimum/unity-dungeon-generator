@@ -9,7 +9,7 @@ namespace ProcDungeon.World
 {
     public class PlayerController : DungeonEntity
     {
-        private enum Movement { None, Forward, Backward, StrafeLeft, StrafeRight, TurnCCW, TurnCW };
+        public enum Movement { None, Forward, Backward, StrafeLeft, StrafeRight, TurnCCW, TurnCW };
 
         public bool PortalsMaintainsDirection;
         public bool PortalsAllowAnyDirectionEntry;        
@@ -64,10 +64,11 @@ namespace ProcDungeon.World
         {
             var movement = NextMovement;
             NextMovement = QueuedMovement;
+            QueuedMovement = Movement.None;
 
             if (movement == Movement.None)
             {
-                return LastMovementInput;
+                return LastMovementInput;                
             }
 
             return movement;
@@ -77,6 +78,8 @@ namespace ProcDungeon.World
         {
             if (context.performed)
             {
+                KeyPressHud.instance.Press(movement);
+
                 if (NextMovement == Movement.None)
                 {
                     NextMovement = movement;
@@ -96,6 +99,8 @@ namespace ProcDungeon.World
 
             if (context.canceled)
             {
+                KeyPressHud.instance.Release(movement);
+
                 if (QueuedMovement == movement && NextMovement == movement)
                 {
                     Debug.Log($"Clean up queued {movement}");
