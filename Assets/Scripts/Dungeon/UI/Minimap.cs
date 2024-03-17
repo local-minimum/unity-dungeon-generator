@@ -19,15 +19,35 @@ namespace ProcDungeon.UI
         private void Start()
         {
             OrientationModeText.text = MinimapCamera.instance.StaticNorth ? "N" : "P";
+            if (PlayerSettings.ShowMinimap.Value)
+            {
+                OnShowMinimap();
+            } else
+            {
+                OnHideMinimap();
+            }
+        }
+
+        private bool Visible
+        {
+            set
+            {
+                Map.SetActive(value);
+                foreach (var button in Buttons)
+                {
+                    button.SetActive(value);
+                }
+            }
         }
 
         public void OnHideMinimap()
         {
-            Map.SetActive(false);
-            foreach (var button in Buttons)
-            {
-                button.SetActive(false);
-            }
+            Visible = false;
+        }
+
+        public void OnShowMinimap()
+        {
+            Visible = true;
         }
 
         public void OnToggleOrientationMode()

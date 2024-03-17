@@ -63,13 +63,14 @@ namespace ProcDungeon.World
             PlayerController.Teleport(grid.PlayerPosition, grid.PlayerLookDirection);
         }
 
-        GameObject SpawnPositionRoot() => basePositionPrefab != null ? Instantiate(basePositionPrefab, generatedLevel) : new GameObject();
+        GameObject SpawnPositionRoot() => basePositionPrefab != null ? Instantiate(basePositionPrefab) : new GameObject();
 
         private void SpawnPosition(DungeonGrid grid, Vector2Int coordinates, GridPosition position)
         {
             var spawner = WorldFeatureSpawner.instance;
             var root = SpawnPositionRoot();
 
+            root.transform.SetParent(generatedLevel, true);
             root.name = position.FullId(coordinates);
             root.transform.position = grid.LocalWorldPosition(coordinates);
 

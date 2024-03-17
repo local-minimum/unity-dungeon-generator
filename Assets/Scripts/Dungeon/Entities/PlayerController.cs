@@ -1,9 +1,13 @@
 using ProcDungeon.UI;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
+using static ProcDungeon.World.PlayerController;
+using static UnityEngine.GraphicsBuffer;
 
 namespace ProcDungeon.World 
 {
@@ -46,8 +50,11 @@ namespace ProcDungeon.World
         Teleporter CurrentTileTeleporter => DungeonGrid.Teleporters.FirstOrDefault(t => t.Coordinates == Coordinates);
 
         #region Movement
-        private Movement NextMovement = Movement.None;
-        private Movement QueuedMovement = Movement.None;
+        private Movement LatestExecutedTranslationMovement { get; set; } = Movement.None;
+        private Movement LatestExecutedRotationMovement { get; set; } = Movement.None;
+
+        private Movement NextMovement { get; set; } = Movement.None;
+        private Movement QueuedMovement { get; set; } = Movement.None;
 
         private List<Movement> ActiveMovements = new List<Movement>();
         
@@ -65,17 +72,36 @@ namespace ProcDungeon.World
         bool IsTurning(Movement movement) => movement == Movement.TurnCCW || movement == Movement.TurnCW;
         bool IsTranslating(Movement movement) => movement != Movement.None && !IsTurning(movement);
 
+        Movement ShiftMovements()
+        {
+            var movement = NextMovement;
+            NextMovement = QueuedMovement;
+            if (NextMovement == Movement.None)
+            {
+                NextMovement = LastMovementInput;
+            } else
+            {
+                QueuedMovement = LastMovementInput;
+            }            
+            return movement;
+        }
+
         bool BonusMovement(out Movement bonusMovement)
         {
-            bonusMovement = Movement.None;
-            return false;
+            if (PlayerSettings.InstantMovement.Value || Rotate != null || Translate == null || !IsTurning(NextMovement))
+            {
+                bonusMovement = Movement.None;
+                return false;
+            }
+
+
+            bonusMovement = ShiftMovements();
+            return true;
         }
 
         Movement GetMovement(out Movement bonusTurnMovment)
         {
-            var movement = NextMovement;
-            NextMovement = QueuedMovement;
-            QueuedMovement = LastMovementInput;
+            var movement = ShiftMovements();
 
             if (movement == Movement.None)
             {
@@ -84,7 +110,7 @@ namespace ProcDungeon.World
             }
 
             
-            if (!InstantMovement && IsTranslating(movement) && IsTurning(NextMovement)) {
+            if (!PlayerSettings.InstantMovement.Value && IsTranslating(movement) && IsTurning(NextMovement)) {
                 bonusTurnMovment = NextMovement;
                 NextMovement = QueuedMovement;
             } else
@@ -115,6 +141,8 @@ namespace ProcDungeon.World
                 {
                     ActiveMovements.Add(movement);
                 }
+
+                WriteDebugText();
             }
 
             if (context.canceled)
@@ -125,10 +153,28 @@ namespace ProcDungeon.World
                 {
                     Debug.Log($"Clean up queued {movement}");
                     QueuedMovement = Movement.None;
+
                 }
+
+                if (NextMovement == movement)
+                {
+                    if (IsTurning(movement))
+                    {
+                        if (LatestExecutedRotationMovement == movement)
+                        {
+                            NextMovement = Movement.None;
+                        }
+                    }
+                    else if (LatestExecutedTranslationMovement == movement)
+                    {
+                        NextMovement = Movement.None;
+                    }
+                }
+
 
                 ActiveMovements.Remove(movement);
 
+                WriteDebugText();
             }
         }
         #endregion
@@ -165,18 +211,27 @@ namespace ProcDungeon.World
 
         private void ExecuteInstantMovement(Movement movement)
         {
-            if (movement == Movement.None) return;
+            if (movement == Movement.None)
+            {
+                LatestExecutedRotationMovement = Movement.None;
+                LatestExecutedTranslationMovement = Movement.None;
+                return;
+            }
 
             Debug.Log($"Tick {movement}");
 
             if (movement == Movement.TurnCW || movement == Movement.TurnCCW)
             {
+                LatestExecutedRotationMovement = movement;
                 Teleport(Coordinates, movement == Movement.TurnCW ? Direction.RotateCW() : Direction.RotateCCW());
             }
             else
             {
                 var moveDirection = MovementToDirection(movement, Direction);
-                if (!Teleport(Coordinates + moveDirection))
+                if (Teleport(Coordinates + moveDirection))
+                {
+                    LatestExecutedTranslationMovement = movement;
+                } else 
                 {
                     var teleporter = CurrentTileTeleporter;
                     if (teleporter != null && (PortalsAllowAnyDirectionEntry || movement == Movement.Forward))
@@ -192,10 +247,12 @@ namespace ProcDungeon.World
                                       )
                                     : teleporter.PairedTeleporter.ExitDirection
                             );
+
+                            LatestExecutedTranslationMovement = movement;
                         }
                     }
 
-                }
+                } 
             }
 
             DelayedAction.instance.CancelMessage(destroyTeleporterMessage);
@@ -204,9 +261,136 @@ namespace ProcDungeon.World
         #endregion
 
         #region Smooth Movement
+        [SerializeField, Tooltip("Time/Progress skewing should always start at 0 and end with 1")]
+        AnimationCurve easeIn;
+        [SerializeField, Tooltip("Time/Progress skewing should always start at 0 and end with 1")] 
+        AnimationCurve easeOut;
+        [SerializeField, Range(0, 1), Tooltip("Fraction of transition that each ease does")]
+        float easeDuration = 0.2f;
+
+        System.Func<bool> Translate;
+        System.Func<bool> Rotate;
+
+        float EaseProgress(float progress, bool continueIn, bool continueOut)
+        {
+            if (progress < easeDuration && !continueIn)
+            {
+                return easeIn.Evaluate(progress / easeDuration) * easeDuration;
+               
+            }
+            else if (progress > 1 - easeDuration && !continueOut)
+            {
+                var easeProgress = progress - (1 - easeDuration);
+                return 1 - easeDuration + easeDuration * easeOut.Evaluate(easeProgress / easeDuration);
+            }
+            else
+            {
+                return progress;
+            }
+        }
+
+        void ConstructSmoothTranslation(Movement movement)
+        {
+            var moveDirection = MovementToDirection(movement, Direction);
+            var targetCoordinates = Coordinates + moveDirection;
+
+            if (DungeonGrid.Accessible(targetCoordinates, EntityType))
+            {
+                var startPosition = transform.position;
+                var targetPosition = DungeonGrid.LocalWorldPosition(targetCoordinates);
+                var startTime = Time.timeSinceLevelLoad;
+                var continueIn = movement == LatestExecutedTranslationMovement;
+                LatestExecutedTranslationMovement = movement;
+
+                Translate = () =>
+                {
+                    var progress = Mathf.Clamp01((Time.timeSinceLevelLoad - startTime) / tickTime);
+
+                    transform.position = Vector3.Lerp(
+                        startPosition,
+                        targetPosition,
+                        EaseProgress(progress, continueIn, movement == NextMovement)
+                    );
+
+                    // Once almost there we trigger map updates
+                    if (progress > 0.9f && !DungeonGrid.Visited(Coordinates))
+                    {
+                        DungeonGrid.VisitPosition(targetCoordinates, Direction);                        
+                    }
+
+                    if (progress == 1f)
+                    {
+                        Coordinates = targetCoordinates;
+                        DungeonGrid.VisitPosition(Coordinates, Direction);
+                    }
+
+                    return progress == 1f;
+                };
+
+            }
+            else
+            {
+                // Consider teleportation
+            }
+
+        }
+
+        void ConstructSmoothRotation(Movement movement)
+        {
+            var direction = movement == Movement.TurnCW ? Direction.RotateCW() : Direction.RotateCCW();
+            var startRotation = transform.rotation;
+            var targetRotation = DungeonGrid.LocalWorldRotation(direction);
+            var startTime = Time.timeSinceLevelLoad;
+            var continueIn = movement == LatestExecutedRotationMovement;
+            LatestExecutedRotationMovement = movement;
+            WriteDebugText();
+
+            Rotate = () =>
+            {
+                var progress = Mathf.Clamp01((Time.timeSinceLevelLoad - startTime) / tickTime);
+
+                transform.rotation = Quaternion.Lerp(startRotation, targetRotation, EaseProgress(progress, continueIn, movement == NextMovement));
+
+                // Once almost there we trigger map updates
+                if (progress > 0.9f && !DungeonGrid.Visited(Coordinates))
+                {
+                    DungeonGrid.VisitPosition(Coordinates, direction);
+                }
+
+                if (progress == 1)
+                {
+                    Direction = direction;
+                    DungeonGrid.VisitPosition(Coordinates, Direction);
+                }
+
+
+                return progress == 1f;
+            };
+
+        }
+
         void ExecuteSmoothMovment(Movement movement, Movement overloadedTurn = Movement.None)
         {
+            if (movement == Movement.None)
+            {
+                LatestExecutedRotationMovement = Movement.None;
+                LatestExecutedTranslationMovement = Movement.None;
+                WriteDebugText();
+                return;
+            }
 
+            if (IsTranslating(movement))
+            {
+                ConstructSmoothTranslation(movement);
+
+                if (IsTurning(overloadedTurn))
+                {
+                    ConstructSmoothRotation(overloadedTurn);
+                }
+            } else if (IsTurning(movement))
+            {
+                ConstructSmoothRotation(movement);
+            }
         }
         #endregion
 
@@ -308,18 +492,33 @@ namespace ProcDungeon.World
                     return Vector2Int.zero;
             }
 
-        }
-
-        public bool InstantMovement;
+        }        
 
         private void Update()
-        {
+        {            
+            if (Translate != null)
+            {
+                if (Translate())
+                {
+                    Translate = null;
+                }
+            }
+            if (Rotate != null)
+            {
+                if (Rotate())
+                {
+                    Rotate = null;
+                    WriteDebugText();
+                }
+            }
+
+            // WriteDebugText();
+
             if (Time.timeSinceLevelLoad - tickTime > lastTick)
             {
                 lastTick = Time.timeSinceLevelLoad;
                 var movement = GetMovement(out var bonusTurnMovment);
-
-                if (InstantMovement)
+                if (PlayerSettings.InstantMovement.Value)
                 {
                     ExecuteInstantMovement(movement);
                 } else
@@ -328,7 +527,7 @@ namespace ProcDungeon.World
                 }                
             } else if (BonusMovement(out var bonusTurnMovment))
             {
-                if (InstantMovement)
+                if (PlayerSettings.InstantMovement.Value)
                 {
                     ExecuteInstantMovement(bonusTurnMovment);
                 } else
@@ -336,6 +535,14 @@ namespace ProcDungeon.World
                     ExecuteSmoothMovment(bonusTurnMovment);
                 }
             }
+        }
+
+        void WriteDebugText()
+        {
+            var status = $"Translating: <b>{Translate != null}</b>\nRotating: <b>{Rotate != null}</b>\n";
+            var latest = $"Latest M: <i>{LatestExecutedTranslationMovement}</i>\nLatest T: <i>{LatestExecutedRotationMovement}</i>\n";
+            var queue = $"Next: <i>{NextMovement}</i>\nQueued: <i>{QueuedMovement}</i>\nLast Inp: <i>{LastMovementInput}</i>\n";
+            DebugText.instance.Text = $"{status}{latest}{queue}";
         }
     }
 }

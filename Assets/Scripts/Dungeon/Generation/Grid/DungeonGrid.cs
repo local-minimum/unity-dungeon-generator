@@ -31,6 +31,16 @@ public class DungeonGrid
         return false;
     }
 
+    public bool Visited(Vector2Int coordinates)
+    {
+        if (GridPositions.ContainsKey(coordinates))
+        {
+            return GridPositions[coordinates].Seen;
+        }
+
+        return false;
+    }
+
     public void VisitPosition(Vector2Int coordinates, Vector2Int forward, int area = 1, int lineOfSight = 4, bool entireRoom = true)
     {
         // Area

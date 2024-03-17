@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -140,6 +141,8 @@ namespace ProcDungeon.UI
             ApplyEffect(StrafeLeft, DefaultColor);
             ApplyEffect(MoveBackward, DefaultColor);
             ApplyEffect(StrafeRight, DefaultColor);
+
+            Visible = PlayerSettings.ShowMovementKeys.Value;
         }
 
         private void Update()
@@ -162,5 +165,18 @@ namespace ProcDungeon.UI
 
             eases = nextEases;
         }
+
+        public bool Visible
+        {
+            set
+            {
+                for (int i = 0, n = transform.childCount; i<n; i++)
+                {
+                    transform.GetChild(i).gameObject.SetActive(value);
+                }
+            }
+        }
+
+        
     }
 }
