@@ -1,6 +1,7 @@
 using ProcDungeon.UI;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -42,6 +43,7 @@ namespace ProcDungeon.World
 
         public Vector2Int Coordinates { get; private set; }
         public Vector2Int Direction {  get; private set; }
+        Teleporter CurrentTileTeleporter => DungeonGrid.Teleporters.FirstOrDefault(t => t.Coordinates == Coordinates);
 
         #region Movement
         private Movement NextMovement = Movement.None;
@@ -60,17 +62,35 @@ namespace ProcDungeon.World
             }
         }
 
-        Movement GetMovement()
+        bool IsTurning(Movement movement) => movement == Movement.TurnCCW || movement == Movement.TurnCW;
+        bool IsTranslating(Movement movement) => movement != Movement.None && !IsTurning(movement);
+
+        bool BonusMovement(out Movement bonusMovement)
+        {
+            bonusMovement = Movement.None;
+            return false;
+        }
+
+        Movement GetMovement(out Movement bonusTurnMovment)
         {
             var movement = NextMovement;
             NextMovement = QueuedMovement;
-            QueuedMovement = Movement.None;
+            QueuedMovement = LastMovementInput;
 
             if (movement == Movement.None)
             {
-                return LastMovementInput;                
+                bonusTurnMovment = Movement.None;
+                return movement;                
             }
 
+            
+            if (!InstantMovement && IsTranslating(movement) && IsTurning(NextMovement)) {
+                bonusTurnMovment = NextMovement;
+                NextMovement = QueuedMovement;
+            } else
+            {
+                bonusTurnMovment = Movement.None;
+            }
             return movement;
         }
 
@@ -111,9 +131,39 @@ namespace ProcDungeon.World
 
             }
         }
-        Teleporter CurrentTileTeleporter => DungeonGrid.Teleporters.FirstOrDefault(t => t.Coordinates == Coordinates);
+        #endregion
 
-        private void ExecuteMovement(Movement movement)
+        #region Teleport / Instant Movement
+        public bool Teleport(Vector2Int target)
+        {
+            if (DungeonGrid.Accessible(target, EntityType))
+            {
+                transform.position = DungeonGrid.LocalWorldPosition(target);
+                Coordinates = target;
+
+                DungeonGrid.VisitPosition(Coordinates, Direction);
+                return true;
+            }
+            return false;
+        }
+
+        public bool Teleport(Vector2Int target, Vector2Int direction, bool force = false)
+        {
+            if (force || DungeonGrid.Accessible(target, EntityType))
+            {
+                transform.position = DungeonGrid.LocalWorldPosition(target);
+                transform.rotation = DungeonGrid.LocalWorldRotation(direction);
+
+                Coordinates = target;
+                Direction = direction;
+
+                DungeonGrid.VisitPosition(Coordinates, Direction);
+                return true;
+            }
+            return false;
+        }
+
+        private void ExecuteInstantMovement(Movement movement)
         {
             if (movement == Movement.None) return;
 
@@ -153,34 +203,10 @@ namespace ProcDungeon.World
 
         #endregion
 
-        #region Teleport / Instant Movement
-        public bool Teleport(Vector2Int target)
+        #region Smooth Movement
+        void ExecuteSmoothMovment(Movement movement, Movement overloadedTurn = Movement.None)
         {
-            if (DungeonGrid.Accessible(target, EntityType))
-            {
-                transform.position = DungeonGrid.LocalWorldPosition(target);
-                Coordinates = target;
 
-                DungeonGrid.VisitPosition(Coordinates, Direction);
-                return true;
-            }
-            return false;
-        }
-
-        public bool Teleport(Vector2Int target, Vector2Int direction, bool force = false)
-        {
-            if (force || DungeonGrid.Accessible(target, EntityType))
-            {
-                transform.position = DungeonGrid.LocalWorldPosition(target);
-                transform.rotation = DungeonGrid.LocalWorldRotation(direction);
-
-                Coordinates = target;
-                Direction = direction;
-
-                DungeonGrid.VisitPosition(Coordinates, Direction);
-                return true;
-            }
-            return false;
         }
         #endregion
 
@@ -284,13 +310,31 @@ namespace ProcDungeon.World
 
         }
 
+        public bool InstantMovement;
+
         private void Update()
         {
             if (Time.timeSinceLevelLoad - tickTime > lastTick)
             {
                 lastTick = Time.timeSinceLevelLoad;
-                var movement = GetMovement();
-                ExecuteMovement(movement);
+                var movement = GetMovement(out var bonusTurnMovment);
+
+                if (InstantMovement)
+                {
+                    ExecuteInstantMovement(movement);
+                } else
+                {
+                    ExecuteSmoothMovment(movement, bonusTurnMovment);
+                }                
+            } else if (BonusMovement(out var bonusTurnMovment))
+            {
+                if (InstantMovement)
+                {
+                    ExecuteInstantMovement(bonusTurnMovment);
+                } else
+                {
+                    ExecuteSmoothMovment(bonusTurnMovment);
+                }
             }
         }
     }
