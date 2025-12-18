@@ -39,6 +39,11 @@ namespace ProcDungeon
             {
                 PlayerPrefs.DeleteKey(Key);
             }
+
+            public void StoreCurrrentValue()
+            {
+                Value = Value;
+            }
         }
 
         public static readonly BoolSetting InstantMovement = new BoolSetting($"{MovementsRoot}.InstantMovemnt", false);
@@ -50,6 +55,13 @@ namespace ProcDungeon
             InstantMovement.RestoreDefault();
             ShowMinimap.RestoreDefault();
             ShowMovementKeys.RestoreDefault();
+        }
+
+        public static void StoreAllSettings()
+        {
+            InstantMovement.StoreCurrrentValue();
+            ShowMinimap.StoreCurrrentValue();
+            ShowMovementKeys.StoreCurrrentValue();
         }
     }
 }

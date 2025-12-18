@@ -315,7 +315,7 @@ namespace ProcDungeon.World
                     // Once almost there we trigger map updates
                     if (progress > 0.9f && !DungeonGrid.Visited(Coordinates))
                     {
-                        DungeonGrid.VisitPosition(targetCoordinates, Direction);                        
+                        DungeonGrid.VisitPosition(targetCoordinates, Direction);
                     }
 
                     if (progress == 1f)
@@ -331,8 +331,46 @@ namespace ProcDungeon.World
             else
             {
                 // Consider teleportation
-            }
+                var teleporter = CurrentTileTeleporter;
+                if (teleporter != null && (PortalsAllowAnyDirectionEntry || movement == Movement.Forward))
+                {
+                    if (moveDirection == -teleporter.ExitDirection)
+                    {
+                        var startPosition = transform.position;
+                        var targetPositionBeforeTeleport = DungeonGrid.LocalWorldPosition(targetCoordinates);
+                        var targetPositionAfterTeleport = DungeonGrid.LocalWorldPosition(teleporter.PairedTeleporter.Coordinates);
+                        var startTime = Time.timeSinceLevelLoad;
+                        var continueIn = movement == LatestExecutedTranslationMovement;
+                        LatestExecutedTranslationMovement = movement;
 
+                        Translate = () =>
+                        {
+                            var progress = Mathf.Clamp01((Time.timeSinceLevelLoad - startTime) / tickTime);
+
+                            transform.position = Vector3.Lerp(
+                                startPosition,
+                                targetPositionBeforeTeleport,
+                                EaseProgress(progress, continueIn, movement == NextMovement)
+                            );
+
+                            // Once almost there we trigger map updates
+                            if (progress > 0.9f && !DungeonGrid.Visited(Coordinates))
+                            {
+                                DungeonGrid.VisitPosition(targetCoordinates, Direction);
+                            }
+
+                            if (progress == 1f)
+                            {
+                                Coordinates = targetCoordinates;
+                                DungeonGrid.VisitPosition(Coordinates, Direction);
+                            }
+
+                            return progress == 1f;
+                        };
+                    }
+
+                }
+            }
         }
 
         void ConstructSmoothRotation(Movement movement)
